@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Mg8JbgtMtkA=",
+  "dgSpecHash": "bnCRhimBwnc=",
   "success": true,
   "projectFilePath": "C:\\home\\claude\\ADManagementApp\\ADManagementApp\\ADManagementApp.csproj",
   "expectedPackageFiles": [
@@ -23,11 +23,7 @@
     "C:\\Users\\240156260\\.nuget\\packages\\system.directoryservices.protocols\\8.0.0\\system.directoryservices.protocols.8.0.0.nupkg.sha512",
     "C:\\Users\\240156260\\.nuget\\packages\\system.security.cryptography.protecteddata\\8.0.0\\system.security.cryptography.protecteddata.8.0.0.nupkg.sha512",
     "C:\\Users\\240156260\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
-    "C:\\Users\\240156260\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",
-    "C:\\Users\\240156260\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.22\\microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\240156260\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.22\\microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\240156260\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.22\\microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512",
-    "C:\\Users\\240156260\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.22\\microsoft.netcore.app.host.win-x64.8.0.22.nupkg.sha512"
+    "C:\\Users\\240156260\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512"
   ],
   "logs": []
 }

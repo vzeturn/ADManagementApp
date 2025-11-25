@@ -1,0 +1,155 @@
+﻿<Window x:Class="ADManagementApp.Views.GroupMembersDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Group Members" 
+        Height="600" Width="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="AccountMultiple" Width="32" Height="32" 
+                                        VerticalAlignment="Center" Margin="0,0,10,0"
+                                        Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Group Members" 
+                              Style="{StaticResource MaterialDesignHeadline5TextBlock}" 
+                              FontWeight="Bold"/>
+                    <TextBlock x:Name="GroupNameTextBlock"
+                              Style="{StaticResource MaterialDesignBody2TextBlock}"
+                              Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Members List -->
+        <materialDesign:Card Grid.Row="1" UniformCornerRadius="8">
+            <Grid>
+                <!-- Loading Overlay -->
+                <Border x:Name="LoadingOverlay"
+                       Background="#80000000" 
+                       Visibility="Collapsed"
+                       Panel.ZIndex="999">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                    Value="0" IsIndeterminate="True"
+                                    Width="60" Height="60"
+                                    Foreground="White"/>
+                        <TextBlock Text="Loading members..." Foreground="White" 
+                                  Margin="0,10,0,0" FontSize="16"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Members DataGrid -->
+                <DataGrid x:Name="MembersDataGrid"
+                         AutoGenerateColumns="False"
+                         CanUserAddRows="False"
+                         CanUserDeleteRows="False"
+                         SelectionMode="Single"
+                         IsReadOnly="True"
+                         materialDesign:DataGridAssist.CellPadding="10"
+                         materialDesign:DataGridAssist.ColumnHeaderPadding="10">
+
+                    <DataGrid.Columns>
+                        <!-- Type Icon -->
+                        <DataGridTemplateColumn Width="50">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <materialDesign:PackIcon Kind="{Binding TypeIcon}" 
+                                                            Width="24" Height="24"
+                                                            HorizontalAlignment="Center"
+                                                            Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- SAM Account Name -->
+                        <DataGridTextColumn Header="Account Name" 
+                                          Binding="{Binding SamAccountName}"
+                                          Width="200">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Display Name -->
+                        <DataGridTextColumn Header="Display Name" 
+                                          Binding="{Binding DisplayName}"
+                                          Width="*"/>
+
+                        <!-- Type -->
+                        <DataGridTextColumn Header="Type" 
+                                          Binding="{Binding Type}"
+                                          Width="100"/>
+
+                        <!-- Actions -->
+                        <DataGridTemplateColumn Header="Actions" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                                           ToolTip="Remove from group"
+                                           Foreground="#F44336"
+                                           Tag="{Binding SamAccountName}"
+                                           Click="RemoveMemberButton_Click">
+                                        <materialDesign:PackIcon Kind="AccountMinus"/>
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Empty State -->
+                <Border x:Name="EmptyStateBorder"
+                       Visibility="Collapsed">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="AccountMultipleOutline" 
+                                                Width="64" Height="64"
+                                                Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                Margin="0,0,0,10"/>
+                        <TextBlock Text="This group has no members" 
+                                  Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                  Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                  HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </materialDesign:Card>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" 
+                   HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                   x:Name="RefreshButton"
+                   Click="RefreshButton_Click"
+                   Margin="0,0,10,0">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center"/>
+                    <TextBlock Text="Refresh" Margin="10,0,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                   Content="Close"
+                   x:Name="CloseButton"
+                   Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

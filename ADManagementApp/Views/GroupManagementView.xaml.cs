@@ -2,9 +2,12 @@ using System.Windows.Controls;
 
 namespace ADManagementApp.Views
 {
-    public partial class UserManagementView : UserControl
+    /// <summary>
+    /// Interaction logic for GroupManagementView.xaml
+    /// </summary>
+    public partial class GroupManagementView : UserControl
     {
-        public UserManagementView()
+        public GroupManagementView()
         {
             InitializeComponent();
         }

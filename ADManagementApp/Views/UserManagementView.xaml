@@ -51,7 +51,7 @@
                            ToolTip="Search">
                         <materialDesign:PackIcon Kind="Magnify"/>
                     </Button>
-                    
+
                     <Button Style="{StaticResource MaterialDesignIconButton}"
                            Command="{Binding LoadUsersCommand}"
                            ToolTip="Refresh">
@@ -99,7 +99,7 @@
                          IsReadOnly="True"
                          materialDesign:DataGridAssist.CellPadding="10"
                          materialDesign:DataGridAssist.ColumnHeaderPadding="10">
-                    
+
                     <DataGrid.Columns>
                         <!-- Username -->
                         <DataGridTextColumn Header="Username" 
@@ -127,23 +127,19 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="Circle" 
-                                                                Width="12" Height="12"
-                                                                VerticalAlignment="Center">
-                                            <materialDesign:PackIcon.Style>
-                                                <Style TargetType="materialDesign:PackIcon">
+                                        <Ellipse Width="12" Height="12" VerticalAlignment="Center">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#F44336"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Enabled}" Value="True">
-                                                            <Setter Property="Foreground" Value="#4CAF50"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Enabled}" Value="False">
-                                                            <Setter Property="Foreground" Value="#F44336"/>
+                                                            <Setter Property="Fill" Value="#4CAF50"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </materialDesign:PackIcon.Style>
-                                        </materialDesign:PackIcon>
-                                        <TextBlock Text="{Binding StatusText}" Margin="10,0,0,0"/>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock Text="{Binding StatusText}" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -160,42 +156,51 @@
                                           Width="*"/>
 
                         <!-- Actions -->
-                        <DataGridTemplateColumn Header="Actions" Width="250">
+                        <DataGridTemplateColumn Header="Actions" Width="280">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <!-- View Details Button -->
                                         <Button Style="{StaticResource MaterialDesignIconButton}"
                                                ToolTip="View Details"
+                                               Width="32" Height="32"
+                                               Margin="2,0"
                                                Command="{Binding DataContext.ViewDetailsCommand, 
                                                        RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                            <materialDesign:PackIcon Kind="Eye"/>
+                                            <materialDesign:PackIcon Kind="Eye" Width="18" Height="18"/>
                                         </Button>
 
+                                        <!-- Edit Button -->
                                         <Button Style="{StaticResource MaterialDesignIconButton}"
                                                ToolTip="Edit"
+                                               Width="32" Height="32"
+                                               Margin="2,0"
                                                Command="{Binding DataContext.EditUserCommand, 
                                                        RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                            <materialDesign:PackIcon Kind="Pencil"/>
+                                            <materialDesign:PackIcon Kind="Pencil" Width="18" Height="18"/>
                                         </Button>
 
+                                        <!-- Reset Password Button -->
                                         <Button Style="{StaticResource MaterialDesignIconButton}"
                                                ToolTip="Reset Password"
+                                               Width="32" Height="32"
+                                               Margin="2,0"
                                                Command="{Binding DataContext.ResetPasswordCommand, 
                                                        RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                            <materialDesign:PackIcon Kind="Key"/>
+                                            <materialDesign:PackIcon Kind="Key" Width="18" Height="18"/>
                                         </Button>
 
-                                        <Button Style="{StaticResource MaterialDesignIconButton}"
-                                               ToolTip="Enable/Disable">
+                                        <!-- Enable/Disable Button -->
+                                        <Button Width="32" Height="32" Margin="2,0">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                                                    <Setter Property="ToolTip" Value="Disable User"/>
+                                                    <Setter Property="Command" 
+                                                           Value="{Binding DataContext.DisableUserCommand, 
+                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Enabled}" Value="True">
-                                                            <Setter Property="Command" 
-                                                                   Value="{Binding DataContext.DisableUserCommand, 
-                                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                                                        </DataTrigger>
                                                         <DataTrigger Binding="{Binding Enabled}" Value="False">
+                                                            <Setter Property="ToolTip" Value="Enable User"/>
                                                             <Setter Property="Command" 
                                                                    Value="{Binding DataContext.EnableUserCommand, 
                                                                           RelativeSource={RelativeSource AncestorType=UserControl}}"/>
@@ -203,13 +208,11 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Button.Style>
-                                            <materialDesign:PackIcon>
+                                            <materialDesign:PackIcon Width="18" Height="18">
                                                 <materialDesign:PackIcon.Style>
                                                     <Style TargetType="materialDesign:PackIcon">
+                                                        <Setter Property="Kind" Value="Lock"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Enabled}" Value="True">
-                                                                <Setter Property="Kind" Value="Lock"/>
-                                                            </DataTrigger>
                                                             <DataTrigger Binding="{Binding Enabled}" Value="False">
                                                                 <Setter Property="Kind" Value="LockOpen"/>
                                                             </DataTrigger>
@@ -219,19 +222,25 @@
                                             </materialDesign:PackIcon>
                                         </Button>
 
+                                        <!-- Unlock Account Button -->
                                         <Button Style="{StaticResource MaterialDesignIconButton}"
                                                ToolTip="Unlock Account"
+                                               Width="32" Height="32"
+                                               Margin="2,0"
                                                Command="{Binding DataContext.UnlockAccountCommand, 
                                                        RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                            <materialDesign:PackIcon Kind="LockOpenVariant"/>
+                                            <materialDesign:PackIcon Kind="LockOpenVariant" Width="18" Height="18"/>
                                         </Button>
 
+                                        <!-- Delete Button -->
                                         <Button Style="{StaticResource MaterialDesignIconButton}"
                                                ToolTip="Delete"
+                                               Width="32" Height="32"
+                                               Margin="2,0"
                                                Foreground="#F44336"
                                                Command="{Binding DataContext.DeleteUserCommand, 
                                                        RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                            <materialDesign:PackIcon Kind="Delete"/>
+                                            <materialDesign:PackIcon Kind="Delete" Width="18" Height="18"/>
                                         </Button>
                                     </StackPanel>
                                 </DataTemplate>

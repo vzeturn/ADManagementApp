@@ -5,8 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="900">
-    
+             d:DesignHeight="600" d:DesignWidth="900"
+             Loaded="UserControl_Loaded">
+
     <UserControl.Resources>
         <Style x:Key="StatCard" TargetType="materialDesign:Card">
             <Setter Property="Padding" Value="20"/>
@@ -30,6 +31,21 @@
                       Style="{StaticResource MaterialDesignBody2TextBlock}"
                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
         </StackPanel>
+
+        <!-- Loading Overlay -->
+        <Border Grid.Row="1"
+               Background="#80000000" 
+               Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+               Panel.ZIndex="999">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                            Value="0" IsIndeterminate="True"
+                            Width="60" Height="60"
+                            Foreground="White"/>
+                <TextBlock Text="Loading dashboard data..." Foreground="White" 
+                          Margin="0,10,0,0" FontSize="16"/>
+            </StackPanel>
+        </Border>
 
         <!-- Content -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -59,7 +75,7 @@
                                                     HorizontalAlignment="Left"/>
 
                             <TextBlock Grid.Row="1" 
-                                      Text="{Binding Stats.TotalUsers, FallbackValue='0'}"
+                                      Text="{Binding Stats.TotalUsers, FallbackValue=0, TargetNullValue=0}"
                                       FontSize="36" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
@@ -86,7 +102,7 @@
                                                     HorizontalAlignment="Left"/>
 
                             <TextBlock Grid.Row="1" 
-                                      Text="{Binding Stats.EnabledUsers, FallbackValue='0'}"
+                                      Text="{Binding Stats.EnabledUsers, FallbackValue=0, TargetNullValue=0}"
                                       FontSize="36" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
@@ -113,7 +129,7 @@
                                                     HorizontalAlignment="Left"/>
 
                             <TextBlock Grid.Row="1" 
-                                      Text="{Binding Stats.DisabledUsers, FallbackValue='0'}"
+                                      Text="{Binding Stats.DisabledUsers, FallbackValue=0, TargetNullValue=0}"
                                       FontSize="36" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
@@ -140,7 +156,7 @@
                                                     HorizontalAlignment="Left"/>
 
                             <TextBlock Grid.Row="1" 
-                                      Text="{Binding Stats.TotalGroups, FallbackValue='0'}"
+                                      Text="{Binding Stats.TotalGroups, FallbackValue=0, TargetNullValue=0}"
                                       FontSize="36" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
@@ -174,26 +190,48 @@
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Domain Name:"
                                       FontWeight="SemiBold" Margin="0,5"/>
                             <TextBlock Grid.Row="0" Grid.Column="1" 
-                                      Text="{Binding Stats.DomainName, FallbackValue='Not connected'}"
+                                      Text="{Binding Stats.DomainName, FallbackValue='Not connected', TargetNullValue='Not connected'}"
                                       Margin="0,5"/>
 
                             <!-- Domain Controller -->
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Domain Controller:"
                                       FontWeight="SemiBold" Margin="0,5"/>
                             <TextBlock Grid.Row="1" Grid.Column="1" 
-                                      Text="{Binding Stats.DomainController, FallbackValue='N/A'}"
+                                      Text="{Binding Stats.DomainController, FallbackValue='N/A', TargetNullValue='N/A'}"
                                       Margin="0,5"/>
 
-                            <!-- Status -->
+                            <!-- Connection Status -->
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Connection Status:"
                                       FontWeight="SemiBold" Margin="0,5"/>
                             <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,5">
                                 <materialDesign:PackIcon Kind="Circle" 
                                                         Width="12" Height="12"
-                                                        Foreground="#4CAF50"
-                                                        VerticalAlignment="Center"/>
-                                <TextBlock Text="Connected" Margin="10,0,0,0" 
-                                          Foreground="#4CAF50" FontWeight="SemiBold"/>
+                                                        VerticalAlignment="Center">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Stats}" Value="{x:Null}">
+                                                    <Setter Property="Foreground" Value="#F44336"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                            <Setter Property="Foreground" Value="#4CAF50"/>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+                                <TextBlock Margin="10,0,0,0" FontWeight="SemiBold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Stats}" Value="{x:Null}">
+                                                    <Setter Property="Text" Value="Disconnected"/>
+                                                    <Setter Property="Foreground" Value="#F44336"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                            <Setter Property="Text" Value="Connected"/>
+                                            <Setter Property="Foreground" Value="#4CAF50"/>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -208,7 +246,9 @@
 
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{StaticResource MaterialDesignRaisedButton}"
-                                   Margin="0,0,10,0" Command="{Binding LoadDataCommand}">
+                                   Margin="0,0,10,0" 
+                                   Command="{Binding RefreshCommand}"
+                                   ToolTip="Refresh dashboard data">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center"/>
                                     <TextBlock Text="Refresh Data" Margin="10,0,0,0"/>
@@ -217,8 +257,10 @@
 
                             <Button Style="{StaticResource MaterialDesignRaisedButton}"
                                    Margin="0,0,10,0"
+                                   Command="{Binding CreateUserCommand}"
                                    Background="{DynamicResource PrimaryHueMidBrush}"
-                                   BorderBrush="{DynamicResource PrimaryHueMidBrush}">
+                                   BorderBrush="{DynamicResource PrimaryHueMidBrush}"
+                                   ToolTip="Create a new user">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="AccountPlus" VerticalAlignment="Center"/>
                                     <TextBlock Text="Create User" Margin="10,0,0,0"/>
@@ -226,10 +268,12 @@
                             </Button>
 
                             <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                   Command="{Binding CreateGroupCommand}"
                                    Background="{DynamicResource SecondaryHueMidBrush}"
-                                   BorderBrush="{DynamicResource SecondaryHueMidBrush}">
+                                   BorderBrush="{DynamicResource SecondaryHueMidBrush}"
+                                   ToolTip="Create a new group">
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="AccountGroupPlus" VerticalAlignment="Center"/>
+                                    <materialDesign:PackIcon Kind="AccountMultiplePlus" VerticalAlignment="Center"/>
                                     <TextBlock Text="Create Group" Margin="10,0,0,0"/>
                                 </StackPanel>
                             </Button>
@@ -237,7 +281,7 @@
                     </StackPanel>
                 </materialDesign:Card>
 
-                <!-- Chart/Stats visualization -->
+                <!-- User Status Distribution -->
                 <materialDesign:Card Margin="10" Padding="20" UniformCornerRadius="8">
                     <StackPanel>
                         <TextBlock Text="User Status Distribution" 
@@ -253,10 +297,15 @@
                             <!-- Enabled Percentage -->
                             <Border Grid.Column="0" Margin="10">
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Stats.EnabledPercentage, StringFormat='{}{0:F1}%', FallbackValue='0%'}"
-                                              FontSize="36" FontWeight="Bold"
+                                    <TextBlock FontSize="36" FontWeight="Bold"
                                               Foreground="#4CAF50"
-                                              HorizontalAlignment="Center"/>
+                                              HorizontalAlignment="Center">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0:F1}%">
+                                                <Binding Path="Stats.EnabledPercentage" FallbackValue="0" TargetNullValue="0"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
                                     <TextBlock Text="Enabled" 
                                               Style="{StaticResource MaterialDesignBody1TextBlock}"
                                               HorizontalAlignment="Center"
@@ -267,10 +316,15 @@
                             <!-- Disabled Percentage -->
                             <Border Grid.Column="1" Margin="10">
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Stats.DisabledPercentage, StringFormat='{}{0:F1}%', FallbackValue='0%'}"
-                                              FontSize="36" FontWeight="Bold"
+                                    <TextBlock FontSize="36" FontWeight="Bold"
                                               Foreground="#FF9800"
-                                              HorizontalAlignment="Center"/>
+                                              HorizontalAlignment="Center">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0:F1}%">
+                                                <Binding Path="Stats.DisabledPercentage" FallbackValue="0" TargetNullValue="0"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
                                     <TextBlock Text="Disabled" 
                                               Style="{StaticResource MaterialDesignBody1TextBlock}"
                                               HorizontalAlignment="Center"

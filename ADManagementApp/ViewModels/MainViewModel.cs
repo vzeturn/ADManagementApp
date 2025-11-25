@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using ADManagementApp.Helpers;
@@ -18,22 +19,25 @@ namespace ADManagementApp.ViewModels
         public MainViewModel(IADService adService)
         {
             _adService = adService;
-            
+
             // Initialize ViewModels
             DashboardViewModel = new DashboardViewModel(_adService);
             UserManagementViewModel = new UserManagementViewModel(_adService);
             GroupManagementViewModel = new GroupManagementViewModel(_adService);
-            
+
             // Initialize commands
-            NavigateToDashboardCommand = new RelayCommand(_ => CurrentView = DashboardViewModel);
-            NavigateToUsersCommand = new RelayCommand(_ => CurrentView = UserManagementViewModel);
-            NavigateToGroupsCommand = new RelayCommand(_ => CurrentView = GroupManagementViewModel);
+            NavigateToDashboardCommand = new RelayCommand(_ => NavigateToDashboard());
+            NavigateToUsersCommand = new RelayCommand(_ => NavigateToUsers());
+            NavigateToGroupsCommand = new RelayCommand(_ => NavigateToGroups());
             NavigateToSettingsCommand = new RelayCommand(_ => ShowSettings());
             RefreshCommand = new AsyncRelayCommand(async _ => await RefreshDataAsync());
             ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
 
-            // Set initial view
+            // Set initial view to Dashboard
             CurrentView = DashboardViewModel;
+
+            // Auto-connect using credentials from appsettings.json
+            Task.Run(async () => await AutoConnectAsync());
         }
 
         public DashboardViewModel DashboardViewModel { get; }
@@ -71,40 +75,67 @@ namespace ADManagementApp.ViewModels
         public ICommand RefreshCommand { get; }
         public ICommand ExitCommand { get; }
 
-        public async void InitializeConnection(string domain, string username, string password)
+        private void NavigateToDashboard()
+        {
+            CurrentView = DashboardViewModel;
+        }
+
+        private void NavigateToUsers()
+        {
+            CurrentView = UserManagementViewModel;
+        }
+
+        private void NavigateToGroups()
+        {
+            CurrentView = GroupManagementViewModel;
+        }
+
+        private async Task AutoConnectAsync()
         {
             try
             {
-                StatusMessage = "Connecting...";
-                
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    StatusMessage = "Connecting...";
+                });
+
+                // Try to connect using credentials from appsettings.json
+                // You should load these from configuration
+                var domain = "corp.haier.com";
+                var username = "240156260";
+                var password = "";
+
                 var connected = await _adService.TestConnectionAsync(domain, username, password);
-                
-                if (connected)
+
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
-                    _adService.SetCredentials(domain, username, password);
-                    IsConnected = true;
-                    StatusMessage = $"Connected to {domain}";
-                    
-                    await RefreshDataAsync();
-                }
-                else
-                {
-                    IsConnected = false;
-                    StatusMessage = "Connection failed";
-                    MessageBox.Show("Failed to connect to domain. Please check your credentials.", 
-                        "Connection Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                    if (connected)
+                    {
+                        _adService.SetCredentials(domain, username, password);
+                        IsConnected = true;
+                        StatusMessage = $"Connected to {domain}";
+
+                        // Load initial data
+                        await RefreshDataAsync();
+                    }
+                    else
+                    {
+                        IsConnected = false;
+                        StatusMessage = "Connection failed - Click Settings to configure";
+                    }
+                });
             }
             catch (Exception ex)
             {
-                IsConnected = false;
-                StatusMessage = "Error connecting";
-                MessageBox.Show($"Error: {ex.Message}", "Connection Error", 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    IsConnected = false;
+                    StatusMessage = $"Error: {ex.Message}";
+                });
             }
         }
 
-        private async System.Threading.Tasks.Task RefreshDataAsync()
+        private async Task RefreshDataAsync()
         {
             if (!IsConnected)
                 return;
@@ -112,9 +143,9 @@ namespace ADManagementApp.ViewModels
             try
             {
                 StatusMessage = "Refreshing...";
-                
+
                 Stats = await _adService.GetDomainStatsAsync();
-                
+
                 // Refresh current view
                 if (CurrentView == DashboardViewModel)
                     await DashboardViewModel.LoadDataAsync();
@@ -122,13 +153,13 @@ namespace ADManagementApp.ViewModels
                     await UserManagementViewModel.LoadUsersAsync();
                 else if (CurrentView == GroupManagementViewModel)
                     await GroupManagementViewModel.LoadGroupsAsync();
-                
+
                 StatusMessage = $"Connected to {Stats?.DomainName ?? "domain"}";
             }
             catch (Exception ex)
             {
                 StatusMessage = "Error refreshing data";
-                MessageBox.Show($"Error refreshing data: {ex.Message}", "Error", 
+                MessageBox.Show($"Error refreshing data: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -139,41 +170,9 @@ namespace ADManagementApp.ViewModels
             if (settingsWindow.ShowDialog() == true)
             {
                 // Reload connection with new settings
-                StatusMessage = "Settings updated";
+                Task.Run(async () => await AutoConnectAsync());
             }
         }
     }
 
-    public class DashboardViewModel : BaseViewModel
-    {
-        private readonly IADService _adService;
-        private DomainStats? _stats;
-
-        public DashboardViewModel(IADService adService)
-        {
-            _adService = adService;
-            LoadDataCommand = new AsyncRelayCommand(async _ => await LoadDataAsync());
-        }
-
-        public DomainStats? Stats
-        {
-            get => _stats;
-            set => SetProperty(ref _stats, value);
-        }
-
-        public ICommand LoadDataCommand { get; }
-
-        public async System.Threading.Tasks.Task LoadDataAsync()
-        {
-            try
-            {
-                Stats = await _adService.GetDomainStatsAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading dashboard: {ex.Message}", "Error", 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-    }
 }
