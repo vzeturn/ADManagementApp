@@ -1,0 +1,117 @@
+﻿<Window x:Class="ADManagementApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Active Directory Management" 
+        Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+    
+    <materialDesign:DialogHost>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Top Bar -->
+            <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="16" 
+                                    materialDesign:ElevationAssist.Elevation="Dp4">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Domain" Width="32" Height="32" 
+                                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="AD Management" VerticalAlignment="Center" 
+                                 FontSize="22" FontWeight="Bold"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource MaterialDesignIconButton}" 
+                              Command="{Binding RefreshCommand}" ToolTip="Refresh">
+                            <materialDesign:PackIcon Kind="Refresh"/>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignIconButton}" 
+                              Command="{Binding NavigateToSettingsCommand}" ToolTip="Settings">
+                            <materialDesign:PackIcon Kind="Cog"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </materialDesign:ColorZone>
+
+            <!-- Main Content -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Sidebar -->
+                <Border Grid.Column="0" Background="{DynamicResource MaterialDesignCardBackground}"
+                       BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,1,0">
+                    <StackPanel Margin="0,10,0,0">
+                        <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                              Command="{Binding NavigateToDashboardCommand}"
+                              Height="50" HorizontalContentAlignment="Left" Padding="20,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ViewDashboard" Width="24" Height="24"/>
+                                <TextBlock Text="Dashboard" Margin="15,0,0,0" VerticalAlignment="Center" FontSize="14"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                              Command="{Binding NavigateToUsersCommand}"
+                              Height="50" HorizontalContentAlignment="Left" Padding="20,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="AccountGroup" Width="24" Height="24"/>
+                                <TextBlock Text="Users" Margin="15,0,0,0" VerticalAlignment="Center" FontSize="14"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                              Command="{Binding NavigateToGroupsCommand}"
+                              Height="50" HorizontalContentAlignment="Left" Padding="20,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="AccountMultiple" Width="24" Height="24"/>
+                                <TextBlock Text="Groups" Margin="15,0,0,0" VerticalAlignment="Center" FontSize="14"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Content Area -->
+                <ContentControl Grid.Column="1" Content="{Binding CurrentView}" Margin="20"/>
+            </Grid>
+
+            <!-- Status Bar -->
+            <materialDesign:ColorZone Grid.Row="2" Mode="PrimaryLight" Padding="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Circle" Width="12" Height="12" VerticalAlignment="Center"
+                                               Foreground="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}"/>
+                        <TextBlock Text="{Binding StatusMessage}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="2" Text="{Binding Stats.DomainName}" VerticalAlignment="Center" FontWeight="Bold"/>
+                </Grid>
+            </materialDesign:ColorZone>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>

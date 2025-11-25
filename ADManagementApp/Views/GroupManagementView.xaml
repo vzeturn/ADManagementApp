@@ -1,0 +1,189 @@
+<UserControl x:Class="ADManagementApp.Views.GroupManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Group Management" 
+                      Style="{StaticResource MaterialDesignHeadline4TextBlock}" 
+                      FontWeight="Bold" Margin="0,0,0,5"/>
+            <TextBlock Text="Manage Active Directory groups and memberships" 
+                      Style="{StaticResource MaterialDesignBody2TextBlock}"
+                      Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+        </StackPanel>
+
+        <!-- Toolbar -->
+        <materialDesign:Card Grid.Row="1" Padding="15" Margin="0,0,0,15" UniformCornerRadius="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Search Box -->
+                <TextBox Grid.Column="0" 
+                        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                        materialDesign:HintAssist.Hint="Search groups..."
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,10,0">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                           Command="{Binding SearchCommand}"
+                           ToolTip="Search">
+                        <materialDesign:PackIcon Kind="Magnify"/>
+                    </Button>
+                    
+                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                           Command="{Binding LoadGroupsCommand}"
+                           ToolTip="Refresh">
+                        <materialDesign:PackIcon Kind="Refresh"/>
+                    </Button>
+
+                    <Separator Style="{StaticResource MaterialDesignVerticalSeparator}" Margin="5,0"/>
+
+                    <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                           Command="{Binding CreateGroupCommand}"
+                           Margin="5,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="AccountGroupPlus" VerticalAlignment="Center"/>
+                            <TextBlock Text="Create Group" Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </materialDesign:Card>
+
+        <!-- Groups DataGrid -->
+        <materialDesign:Card Grid.Row="2" UniformCornerRadius="8">
+            <Grid>
+                <!-- Loading Overlay -->
+                <Border Background="#80000000" 
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                       Panel.ZIndex="999">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                    Value="0" IsIndeterminate="True"
+                                    Width="60" Height="60"
+                                    Foreground="White"/>
+                        <TextBlock Text="Loading..." Foreground="White" 
+                                  Margin="0,10,0,0" FontSize="16"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- DataGrid -->
+                <DataGrid ItemsSource="{Binding Groups}"
+                         SelectedItem="{Binding SelectedGroup}"
+                         AutoGenerateColumns="False"
+                         CanUserAddRows="False"
+                         CanUserDeleteRows="False"
+                         SelectionMode="Single"
+                         IsReadOnly="True"
+                         materialDesign:DataGridAssist.CellPadding="10"
+                         materialDesign:DataGridAssist.ColumnHeaderPadding="10">
+                    
+                    <DataGrid.Columns>
+                        <!-- Icon -->
+                        <DataGridTemplateColumn Width="50">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <materialDesign:PackIcon Kind="AccountGroup" 
+                                                            Width="24" Height="24"
+                                                            Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                                            HorizontalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Group Name -->
+                        <DataGridTextColumn Header="Group Name" 
+                                          Binding="{Binding Name}"
+                                          Width="250">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="FontSize" Value="14"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- SAM Account Name -->
+                        <DataGridTextColumn Header="SAM Account Name" 
+                                          Binding="{Binding SamAccountName}"
+                                          Width="200"/>
+
+                        <!-- Description -->
+                        <DataGridTextColumn Header="Description" 
+                                          Binding="{Binding Description}"
+                                          Width="*"/>
+
+                        <!-- Member Count -->
+                        <DataGridTemplateColumn Header="Members" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <materialDesign:PackIcon Kind="Account" 
+                                                                Width="16" Height="16"
+                                                                VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding MemberCount}" 
+                                                  Margin="5,0,0,0"
+                                                  FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Actions -->
+                        <DataGridTemplateColumn Header="Actions" Width="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                               ToolTip="View Members"
+                                               Command="{Binding DataContext.ViewMembersCommand, 
+                                                       RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                            <materialDesign:PackIcon Kind="AccountMultiple"/>
+                                        </Button>
+
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                               ToolTip="Add Member"
+                                               Command="{Binding DataContext.AddMemberCommand, 
+                                                       RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                            <materialDesign:PackIcon Kind="AccountPlus"/>
+                                        </Button>
+
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                               ToolTip="Delete Group"
+                                               Foreground="#F44336"
+                                               Command="{Binding DataContext.DeleteGroupCommand, 
+                                                       RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                            <materialDesign:PackIcon Kind="Delete"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>
