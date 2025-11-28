@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © 2024")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Enterprise-grade Active Directory Management Application")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0+33b0f18b87c1ded0fcd2af15ff9864418ef49238")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0+b5407075f4290cba13f7f8f4d81e6ec57b6233a7")]
 [assembly: System.Reflection.AssemblyProductAttribute("Active Directory Management Tool")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ADManagementApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.0.0.0")]
