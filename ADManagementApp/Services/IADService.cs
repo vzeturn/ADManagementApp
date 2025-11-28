@@ -8,7 +8,7 @@ namespace ADManagementApp.Services
     {
         // Connection
         Task<bool> TestConnectionAsync(string domain, string username, string password);
-        void SetCredentials(string domain, string username, string password);
+        void SetCredentials(string domain, string username, string password, string defaultOU);
         
         // Users
         Task<List<ADUser>> GetAllUsersAsync(string searchTerm = "");

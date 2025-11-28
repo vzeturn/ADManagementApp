@@ -58,7 +58,7 @@
                         <materialDesign:PackIcon Kind="Refresh"/>
                     </Button>
 
-                    <Separator Style="{StaticResource MaterialDesignVerticalSeparator}" Margin="5,0"/>
+                    <!--<Separator Style="{StaticResource MaterialDesignVerticalSeparator}" Margin="5,0"/>-->
 
                     <Button Style="{StaticResource MaterialDesignRaisedButton}"
                            Command="{Binding CreateUserCommand}"

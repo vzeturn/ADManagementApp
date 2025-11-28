@@ -76,7 +76,7 @@
 
                             <TextBlock Grid.Row="1" 
                                       Text="{Binding Stats.TotalUsers, FallbackValue=0, TargetNullValue=0}"
-                                      FontSize="36" FontWeight="Bold"
+                                      FontSize="14" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
 
@@ -103,7 +103,7 @@
 
                             <TextBlock Grid.Row="1" 
                                       Text="{Binding Stats.EnabledUsers, FallbackValue=0, TargetNullValue=0}"
-                                      FontSize="36" FontWeight="Bold"
+                                      FontSize="14" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
 
@@ -130,7 +130,7 @@
 
                             <TextBlock Grid.Row="1" 
                                       Text="{Binding Stats.DisabledUsers, FallbackValue=0, TargetNullValue=0}"
-                                      FontSize="36" FontWeight="Bold"
+                                      FontSize="14" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
 
@@ -157,7 +157,7 @@
 
                             <TextBlock Grid.Row="1" 
                                       Text="{Binding Stats.TotalGroups, FallbackValue=0, TargetNullValue=0}"
-                                      FontSize="36" FontWeight="Bold"
+                                      FontSize="14" FontWeight="Bold"
                                       Foreground="White"
                                       VerticalAlignment="Center"/>
 
