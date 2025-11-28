@@ -1,33 +1,47 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using ADManagementApp.Helpers;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using ADManagementApp.Models;
 using ADManagementApp.Services;
 
 namespace ADManagementApp.ViewModels
 {
+    /// <summary>
+    /// ViewModel for Group Management view
+    /// Handles all group-related operations
+    /// </summary>
     public class GroupManagementViewModel : BaseViewModel
     {
         private readonly IADService _adService;
+        private readonly IDialogService _dialogService;
+        private readonly ILogger<GroupManagementViewModel> _logger;
+
         private ObservableCollection<ADGroup> _groups = new();
         private ADGroup? _selectedGroup;
         private string _searchText = string.Empty;
-        private bool _isLoading;
 
-        public GroupManagementViewModel(IADService adService)
+        public GroupManagementViewModel(
+            IADService adService,
+            IDialogService dialogService,
+            ILogger<GroupManagementViewModel> logger)
         {
             _adService = adService;
-            
-            LoadGroupsCommand = new AsyncRelayCommand(async _ => await LoadGroupsAsync());
-            SearchCommand = new AsyncRelayCommand(async _ => await SearchGroupsAsync());
-            CreateGroupCommand = new RelayCommand(_ => ShowCreateGroupDialog());
-            DeleteGroupCommand = new AsyncRelayCommand(async _ => await DeleteGroupAsync(), _ => SelectedGroup != null);
-            ViewMembersCommand = new RelayCommand(_ => ShowGroupMembers(), _ => SelectedGroup != null);
-            AddMemberCommand = new RelayCommand(_ => ShowAddMemberDialog(), _ => SelectedGroup != null);
+            _dialogService = dialogService;
+            _logger = logger;
+
+            // Initialize commands
+            LoadGroupsCommand = new AsyncRelayCommand(LoadGroupsAsync, () => !IsBusy);
+            SearchCommand = new AsyncRelayCommand(SearchGroupsAsync, () => !IsBusy);
+            CreateGroupCommand = new AsyncRelayCommand(CreateGroupAsync, () => !IsBusy);
+            DeleteGroupCommand = new AsyncRelayCommand(DeleteGroupAsync, () => SelectedGroup != null && !IsBusy);
+            ViewMembersCommand = new RelayCommand(ViewMembers, () => SelectedGroup != null);
+            AddMemberCommand = new AsyncRelayCommand(AddMemberAsync, () => SelectedGroup != null && !IsBusy);
         }
+
+        #region Properties
 
         public ObservableCollection<ADGroup> Groups
         {
@@ -38,7 +52,16 @@ namespace ADManagementApp.ViewModels
         public ADGroup? SelectedGroup
         {
             get => _selectedGroup;
-            set => SetProperty(ref _selectedGroup, value);
+            set
+            {
+                if (SetProperty(ref _selectedGroup, value))
+                {
+                    // Notify command can execute changed
+                    (DeleteGroupCommand as AsyncRelayCommand)?.NotifyCanExecuteChanged();
+                    (ViewMembersCommand as RelayCommand)?.NotifyCanExecuteChanged();
+                    (AddMemberCommand as AsyncRelayCommand)?.NotifyCanExecuteChanged();
+                }
+            }
         }
 
         public string SearchText
@@ -47,11 +70,9 @@ namespace ADManagementApp.ViewModels
             set => SetProperty(ref _searchText, value);
         }
 
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
+        #endregion
+
+        #region Commands
 
         public ICommand LoadGroupsCommand { get; }
         public ICommand SearchCommand { get; }
@@ -60,122 +81,193 @@ namespace ADManagementApp.ViewModels
         public ICommand ViewMembersCommand { get; }
         public ICommand AddMemberCommand { get; }
 
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Load all groups from Active Directory
+        /// </summary>
         public async Task LoadGroupsAsync()
         {
             try
             {
-                IsLoading = true;
+                SetBusy(true, "Loading groups...");
+                _logger.LogInformation("Loading all groups");
+
                 var groups = await _adService.GetAllGroupsAsync();
                 Groups = new ObservableCollection<ADGroup>(groups);
+
+                _logger.LogInformation("Loaded {Count} groups", Groups.Count);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading groups: {ex.Message}", "Error", 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.LogError(ex, "Error loading groups");
+                _dialogService.ShowError($"Error loading groups: {ex.Message}");
             }
             finally
             {
-                IsLoading = false;
+                SetBusy(false);
             }
         }
 
+        /// <summary>
+        /// Search groups by text
+        /// </summary>
         private async Task SearchGroupsAsync()
         {
             try
             {
-                IsLoading = true;
+                SetBusy(true, "Searching groups...");
+                _logger.LogInformation("Searching groups with term: {SearchTerm}", SearchText);
+
                 var groups = await _adService.GetAllGroupsAsync(SearchText);
                 Groups = new ObservableCollection<ADGroup>(groups);
+
+                _logger.LogInformation("Found {Count} groups matching '{SearchTerm}'", Groups.Count, SearchText);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error searching groups: {ex.Message}", "Error", 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.LogError(ex, "Error searching groups");
+                _dialogService.ShowError($"Error searching groups: {ex.Message}");
             }
             finally
             {
-                IsLoading = false;
+                SetBusy(false);
             }
         }
 
-        private void ShowCreateGroupDialog()
+        /// <summary>
+        /// Create a new group
+        /// </summary>
+        private async Task CreateGroupAsync()
         {
-            var dialog = new Views.CreateGroupDialog();
-            if (dialog.ShowDialog() == true && dialog.NewGroup != null)
+            try
             {
-                Task.Run(async () =>
+                _logger.LogInformation("Opening create group dialog");
+
+                var (success, group) = await _dialogService.ShowCreateGroupDialogAsync();
+
+                if (!success || group == null)
                 {
-                    try
-                    {
-                        var success = await _adService.CreateGroupAsync(dialog.NewGroup);
-                        
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            if (success)
-                            {
-                                MessageBox.Show("Group created successfully!", "Success", 
-                                    MessageBoxButton.OK, MessageBoxImage.Information);
-                                LoadGroupsAsync().Wait();
-                            }
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            MessageBox.Show($"Error: {ex.Message}", "Error", 
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-                        });
-                    }
-                });
+                    _logger.LogDebug("Group creation cancelled");
+                    return;
+                }
+
+                SetBusy(true, $"Creating group '{group.SamAccountName}'...");
+                _logger.LogInformation("Creating group: {GroupName}", group.SamAccountName);
+
+                var created = await _adService.CreateGroupAsync(group);
+
+                if (created)
+                {
+                    _logger.LogInformation("Group created successfully: {GroupName}", group.SamAccountName);
+                    _dialogService.ShowSuccess($"Group '{group.Name}' created successfully!");
+                    await LoadGroupsAsync();
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to create group: {GroupName}", group.SamAccountName);
+                    _dialogService.ShowError("Failed to create group.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating group");
+                _dialogService.ShowError($"Error creating group: {ex.Message}");
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
+        /// <summary>
+        /// Delete selected group
+        /// </summary>
         private async Task DeleteGroupAsync()
         {
             if (SelectedGroup == null) return;
 
-            var result = MessageBox.Show(
-                $"Are you sure you want to delete group '{SelectedGroup.Name}'?",
-                "Confirm Delete",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
+            try
             {
-                try
+                _logger.LogInformation("Requesting confirmation to delete group: {GroupName}", SelectedGroup.SamAccountName);
+
+                var confirmed = await _dialogService.ShowConfirmationAsync(
+                    $"Are you sure you want to delete group '{SelectedGroup.Name}'?\n\nThis action cannot be undone!",
+                    "Confirm Delete");
+
+                if (!confirmed)
                 {
-                    var success = await _adService.DeleteGroupAsync(SelectedGroup.SamAccountName);
-                    if (success)
-                    {
-                        MessageBox.Show("Group deleted successfully!", "Success", 
-                            MessageBoxButton.OK, MessageBoxImage.Information);
-                        await LoadGroupsAsync();
-                    }
+                    _logger.LogDebug("Group deletion cancelled");
+                    return;
                 }
-                catch (Exception ex)
+
+                SetBusy(true, $"Deleting group '{SelectedGroup.SamAccountName}'...");
+                _logger.LogInformation("Deleting group: {GroupName}", SelectedGroup.SamAccountName);
+
+                var deleted = await _adService.DeleteGroupAsync(SelectedGroup.SamAccountName);
+
+                if (deleted)
                 {
-                    MessageBox.Show($"Error: {ex.Message}", "Error", 
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    _logger.LogInformation("Group deleted successfully: {GroupName}", SelectedGroup.SamAccountName);
+                    _dialogService.ShowSuccess("Group deleted successfully!");
+                    await LoadGroupsAsync();
                 }
+                else
+                {
+                    _logger.LogWarning("Failed to delete group: {GroupName}", SelectedGroup.SamAccountName);
+                    _dialogService.ShowError("Failed to delete group.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting group");
+                _dialogService.ShowError($"Error deleting group: {ex.Message}");
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
-        private void ShowGroupMembers()
+        /// <summary>
+        /// View members of selected group
+        /// </summary>
+        private void ViewMembers()
         {
             if (SelectedGroup == null) return;
-            var dialog = new Views.GroupMembersDialog(SelectedGroup, _adService);
-            dialog.ShowDialog();
+
+            _logger.LogInformation("Showing members for group: {GroupName}", SelectedGroup.SamAccountName);
+            _dialogService.ShowGroupMembers(SelectedGroup);
         }
 
-        private void ShowAddMemberDialog()
+        /// <summary>
+        /// Add member to selected group
+        /// </summary>
+        private async Task AddMemberAsync()
         {
             if (SelectedGroup == null) return;
-            var dialog = new Views.AddMemberDialog(SelectedGroup, _adService);
-            if (dialog.ShowDialog() == true)
+
+            try
             {
-                LoadGroupsAsync().Wait();
+                _logger.LogInformation("Opening add member dialog for group: {GroupName}", SelectedGroup.SamAccountName);
+
+                var (success, username) = await _dialogService.ShowAddMemberDialogAsync(SelectedGroup);
+
+                if (success && !string.IsNullOrEmpty(username))
+                {
+                    _logger.LogInformation("User {Username} added to group {GroupName}", username, SelectedGroup.SamAccountName);
+                    await LoadGroupsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding member to group");
+                _dialogService.ShowError($"Error adding member: {ex.Message}");
             }
         }
+
+        #endregion
     }
 }

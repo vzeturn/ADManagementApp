@@ -182,7 +182,7 @@ namespace ADManagementApp.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ADManagementApp;V1.0.0.0;component/views/createuserdialog.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ADManagementApp;component/views/createuserdialog.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\CreateUserDialog.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

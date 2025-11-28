@@ -1,28 +1,38 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using ADManagementApp.Helpers;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using ADManagementApp.Models;
 using ADManagementApp.Services;
 
 namespace ADManagementApp.ViewModels
 {
+    /// <summary>
+    /// ViewModel for Dashboard view
+    /// Displays domain statistics and quick actions
+    /// </summary>
     public class DashboardViewModel : BaseViewModel
     {
         private readonly IADService _adService;
-        private DomainStats? _stats;
-        private bool _isLoading;
+        private readonly IDialogService _dialogService;
+        private readonly ILogger<DashboardViewModel> _logger;
 
-        public DashboardViewModel(IADService adService)
+        private DomainStats? _stats;
+
+        public DashboardViewModel(
+            IADService adService,
+            IDialogService dialogService,
+            ILogger<DashboardViewModel> logger)
         {
             _adService = adService;
+            _dialogService = dialogService;
+            _logger = logger;
 
             // Initialize commands
-            LoadDataCommand = new AsyncRelayCommand(async _ => await LoadDataAsync());
-            RefreshCommand = new AsyncRelayCommand(async _ => await LoadDataAsync());
-            CreateUserCommand = new RelayCommand(_ => CreateUser());
-            CreateGroupCommand = new RelayCommand(_ => CreateGroup());
+            RefreshCommand = new AsyncRelayCommand(LoadDataAsync, () => !IsBusy);
+            CreateUserCommand = new AsyncRelayCommand(CreateUserAsync, () => !IsBusy);
+            CreateGroupCommand = new AsyncRelayCommand(CreateGroupAsync, () => !IsBusy);
         }
 
         #region Properties
@@ -33,17 +43,10 @@ namespace ADManagementApp.ViewModels
             set => SetProperty(ref _stats, value);
         }
 
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
-
         #endregion
 
         #region Commands
 
-        public ICommand LoadDataCommand { get; }
         public ICommand RefreshCommand { get; }
         public ICommand CreateUserCommand { get; }
         public ICommand CreateGroupCommand { get; }
@@ -52,21 +55,28 @@ namespace ADManagementApp.ViewModels
 
         #region Methods
 
+        /// <summary>
+        /// Load dashboard data
+        /// </summary>
         public async Task LoadDataAsync()
         {
             try
             {
-                IsLoading = true;
+                SetBusy(true, "Loading dashboard data...");
+                _logger.LogInformation("Loading dashboard data");
 
                 // Load domain statistics
                 Stats = await _adService.GetDomainStatsAsync();
+
+                _logger.LogInformation("Dashboard data loaded successfully. Users: {TotalUsers}, Groups: {TotalGroups}",
+                    Stats.TotalUsers, Stats.TotalGroups);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading dashboard data: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.LogError(ex, "Error loading dashboard data");
+                _dialogService.ShowError($"Error loading dashboard data: {ex.Message}");
 
-                // Set default stats if error
+                // Set default stats on error
                 Stats = new DomainStats
                 {
                     TotalUsers = 0,
@@ -79,103 +89,101 @@ namespace ADManagementApp.ViewModels
             }
             finally
             {
-                IsLoading = false;
+                SetBusy(false);
             }
         }
 
-        private void CreateUser()
+        /// <summary>
+        /// Create a new user
+        /// </summary>
+        private async Task CreateUserAsync()
         {
             try
             {
-                var dialog = new Views.CreateUserDialog();
-                if (dialog.ShowDialog() == true && dialog.NewUser != null)
+                _logger.LogInformation("Opening create user dialog");
+
+                var (success, user, password) = await _dialogService.ShowCreateUserDialogAsync();
+
+                if (!success || user == null)
                 {
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            var success = await _adService.CreateUserAsync(dialog.NewUser, dialog.Password);
+                    _logger.LogDebug("User creation cancelled");
+                    return;
+                }
 
-                            Application.Current.Dispatcher.Invoke(async () =>
-                            {
-                                if (success)
-                                {
-                                    MessageBox.Show("User created successfully!", "Success",
-                                        MessageBoxButton.OK, MessageBoxImage.Information);
+                SetBusy(true, "Creating user...");
+                _logger.LogInformation("Creating user: {Username}", user.SamAccountName);
 
-                                    // Refresh dashboard data
-                                    await LoadDataAsync();
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Failed to create user.", "Error",
-                                        MessageBoxButton.OK, MessageBoxImage.Error);
-                                }
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                MessageBox.Show($"Error creating user: {ex.Message}", "Error",
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
-                            });
-                        }
-                    });
+                var created = await _adService.CreateUserAsync(user, password);
+
+                if (created)
+                {
+                    _logger.LogInformation("User created successfully: {Username}", user.SamAccountName);
+                    _dialogService.ShowSuccess($"User '{user.DisplayName}' created successfully!");
+
+                    // Refresh dashboard data
+                    await LoadDataAsync();
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to create user: {Username}", user.SamAccountName);
+                    _dialogService.ShowError("Failed to create user.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error opening create user dialog: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.LogError(ex, "Error creating user");
+                _dialogService.ShowError($"Error creating user: {ex.Message}");
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
-        private void CreateGroup()
+        /// <summary>
+        /// Create a new group
+        /// </summary>
+        private async Task CreateGroupAsync()
         {
             try
             {
-                var dialog = new Views.CreateGroupDialog();
-                if (dialog.ShowDialog() == true && dialog.NewGroup != null)
+                _logger.LogInformation("Opening create group dialog");
+
+                var (success, group) = await _dialogService.ShowCreateGroupDialogAsync();
+
+                if (!success || group == null)
                 {
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            var success = await _adService.CreateGroupAsync(dialog.NewGroup);
+                    _logger.LogDebug("Group creation cancelled");
+                    return;
+                }
 
-                            Application.Current.Dispatcher.Invoke(async () =>
-                            {
-                                if (success)
-                                {
-                                    MessageBox.Show("Group created successfully!", "Success",
-                                        MessageBoxButton.OK, MessageBoxImage.Information);
+                SetBusy(true, "Creating group...");
+                _logger.LogInformation("Creating group: {GroupName}", group.SamAccountName);
 
-                                    // Refresh dashboard data
-                                    await LoadDataAsync();
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Failed to create group.", "Error",
-                                        MessageBoxButton.OK, MessageBoxImage.Error);
-                                }
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                MessageBox.Show($"Error creating group: {ex.Message}", "Error",
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
-                            });
-                        }
-                    });
+                var created = await _adService.CreateGroupAsync(group);
+
+                if (created)
+                {
+                    _logger.LogInformation("Group created successfully: {GroupName}", group.SamAccountName);
+                    _dialogService.ShowSuccess($"Group '{group.Name}' created successfully!");
+
+                    // Refresh dashboard data
+                    await LoadDataAsync();
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to create group: {GroupName}", group.SamAccountName);
+                    _dialogService.ShowError("Failed to create group.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error opening create group dialog: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.LogError(ex, "Error creating group");
+                _dialogService.ShowError($"Error creating group: {ex.Message}");
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 

@@ -1,22 +1,17 @@
-using System.Windows;
 using System.Windows.Controls;
 
 namespace ADManagementApp.Views
 {
+    /// <summary>
+    /// Interaction logic for DashboardView.xaml
+    /// View is dumb - no auto-loading, user controls everything
+    /// </summary>
     public partial class DashboardView : UserControl
     {
         public DashboardView()
         {
             InitializeComponent();
-        }
-
-        private async void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            // Auto-load data when view is displayed
-            if (DataContext is ViewModels.DashboardViewModel viewModel)
-            {
-                await viewModel.LoadDataAsync();
-            }
+            // NO auto-loading - user will click refresh button when needed
         }
     }
 }

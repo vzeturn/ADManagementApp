@@ -509,8 +509,12 @@ namespace ADManagementApp.Services
         {
             return await Task.Run(() =>
             {
-                var stats = new DomainStats { DomainName = _domain };
-                
+                var stats = new DomainStats
+                {
+                    DomainName = _domain,
+                    LastUpdated = DateTime.Now  // Set timestamp when data is loaded
+                };
+
                 try
                 {
                     using (var context = GetPrincipalContext())

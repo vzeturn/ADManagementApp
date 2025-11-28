@@ -12,8 +12,8 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR
 C:\home\claude\ADManagementApp\ADManagementApp\App.xaml
 12-142382816
 
-28-139431706
-212-1739064207
+32-1151179604
+2371719598481
 MainWindow.xaml;Views\AddMemberDialog.xaml;Views\CreateGroupDialog.xaml;Views\CreateUserDialog.xaml;Views\DashboardView.xaml;Views\EditUserDialog.xaml;Views\GroupManagementView.xaml;Views\GroupMembersDialog.xaml;Views\ResetPasswordDialog.xaml;Views\SettingsView.xaml;Views\UserDetailsDialog.xaml;Views\UserManagementView.xaml;
 
 False

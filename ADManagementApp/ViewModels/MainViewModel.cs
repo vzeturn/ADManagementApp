@@ -1,60 +1,76 @@
-﻿using ADManagementApp.Helpers;
+﻿using System;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ADManagementApp.Models;
 using ADManagementApp.Services;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Configuration;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
 
 namespace ADManagementApp.ViewModels
 {
+    /// <summary>
+    /// Main ViewModel for the application
+    /// Handles navigation, connection state, and overall app state
+    /// </summary>
     public class MainViewModel : BaseViewModel
     {
+        private readonly IConfiguration _configuration;
         private readonly IADService _adService;
-        private object? _currentView;
+        private readonly INavigationService _navigationService;
+        private readonly IDialogService _dialogService;
+        private readonly ILogger<MainViewModel> _logger;
+
         private DomainStats? _stats;
         private bool _isConnected;
         private string _statusMessage = "Not connected";
-        private readonly IConfiguration _configuration;
+        private bool _isInitialized;
 
-        public MainViewModel(IConfiguration configuration, IADService adService)
+        public MainViewModel(
+            IConfiguration configuration,
+            IADService adService,
+            INavigationService navigationService,
+            IDialogService dialogService,
+            DashboardViewModel dashboardViewModel,
+            UserManagementViewModel userManagementViewModel,
+            GroupManagementViewModel groupManagementViewModel,
+            ILogger<MainViewModel> logger)
         {
             _configuration = configuration;
             _adService = adService;
+            _navigationService = navigationService;
+            _dialogService = dialogService;
+            _logger = logger;
 
-            // Initialize ViewModels
-            DashboardViewModel = new DashboardViewModel(_adService);
-            UserManagementViewModel = new UserManagementViewModel(_adService);
-            GroupManagementViewModel = new GroupManagementViewModel(_adService);
+            // Store ViewModels
+            DashboardViewModel = dashboardViewModel;
+            UserManagementViewModel = userManagementViewModel;
+            GroupManagementViewModel = groupManagementViewModel;
 
             // Initialize commands
-            NavigateToDashboardCommand = new RelayCommand(_ => NavigateToDashboard());
-            NavigateToUsersCommand = new RelayCommand(_ => NavigateToUsers());
-            NavigateToGroupsCommand = new RelayCommand(_ => NavigateToGroups());
-            NavigateToSettingsCommand = new RelayCommand(_ => ShowSettings());
-            RefreshCommand = new AsyncRelayCommand(async _ => await RefreshDataAsync());
-            ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
+            NavigateToDashboardCommand = new RelayCommand(NavigateToDashboard, () => !IsBusy);
+            NavigateToUsersCommand = new RelayCommand(NavigateToUsers, () => !IsBusy);
+            NavigateToGroupsCommand = new RelayCommand(NavigateToGroups, () => !IsBusy);
+            NavigateToSettingsCommand = new RelayCommand(ShowSettings, () => !IsBusy);
+            RefreshCommand = new AsyncRelayCommand(RefreshDataAsync, () => !IsBusy);
 
-            // Set initial view to Dashboard
-            CurrentView = DashboardViewModel;
+            // Subscribe to navigation changes
+            _navigationService.NavigationChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(CurrentView));
+            };
 
-            // Auto-connect using credentials from appsettings.json
-            Task.Run(async () => await AutoConnectAsync());
-            Thread.Sleep(3000);
+            // Start initialization
+            _ = InitializeAsync();
         }
+
+        #region Properties
 
         public DashboardViewModel DashboardViewModel { get; }
         public UserManagementViewModel UserManagementViewModel { get; }
         public GroupManagementViewModel GroupManagementViewModel { get; }
 
-        public object? CurrentView
-        {
-            get => _currentView;
-            set => SetProperty(ref _currentView, value);
-        }
+        public object? CurrentView => _navigationService.CurrentViewModel;
 
         public DomainStats? Stats
         {
@@ -65,7 +81,14 @@ namespace ADManagementApp.ViewModels
         public bool IsConnected
         {
             get => _isConnected;
-            set => SetProperty(ref _isConnected, value);
+            set
+            {
+                if (SetProperty(ref _isConnected, value))
+                {
+                    OnPropertyChanged(nameof(ConnectionStatusText));
+                    OnPropertyChanged(nameof(ConnectionStatusColor));
+                }
+            }
         }
 
         public string StatusMessage
@@ -74,95 +97,134 @@ namespace ADManagementApp.ViewModels
             set => SetProperty(ref _statusMessage, value);
         }
 
+        public string ConnectionStatusText => IsConnected ? "Connected" : "Disconnected";
+        public string ConnectionStatusColor => IsConnected ? "#4CAF50" : "#F44336";
+
+        #endregion
+
+        #region Commands
+
         public ICommand NavigateToDashboardCommand { get; }
         public ICommand NavigateToUsersCommand { get; }
         public ICommand NavigateToGroupsCommand { get; }
         public ICommand NavigateToSettingsCommand { get; }
         public ICommand RefreshCommand { get; }
-        public ICommand ExitCommand { get; }
 
-        private void NavigateToDashboard()
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Initialize the application - only test connection, no auto-loading
+        /// </summary>
+        private async Task InitializeAsync()
         {
-            CurrentView = DashboardViewModel;
+            if (_isInitialized) return;
+
+            try
+            {
+                SetBusy(true, "Connecting to Active Directory...");
+                _logger.LogInformation("Starting application initialization");
+
+                // Only connect to Active Directory - don't load data yet
+                await ConnectToActiveDirectoryAsync();
+
+                // Navigate to dashboard - user will manually load data when needed
+                _navigationService.NavigateTo(DashboardViewModel);
+
+                _isInitialized = true;
+                _logger.LogInformation("Application initialization completed successfully. Connection status: {IsConnected}", IsConnected);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during application initialization");
+                _dialogService.ShowError($"Initialization error: {ex.Message}");
+            }
+            finally
+            {
+                SetBusy(false);
+            }
         }
 
-        private void NavigateToUsers()
-        {
-            CurrentView = UserManagementViewModel;
-        }
-
-        private void NavigateToGroups()
-        {
-            CurrentView = GroupManagementViewModel;
-        }
-
-        private async Task AutoConnectAsync()
+        /// <summary>
+        /// Connect to Active Directory using configuration
+        /// </summary>
+        private async Task ConnectToActiveDirectoryAsync()
         {
             try
             {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    StatusMessage = "Connecting...";
-                });
+                SetBusy(true, "Connecting to Active Directory...");
+                StatusMessage = "Connecting...";
 
-                // Load configuration from appsettings.json
                 var domain = _configuration["ActiveDirectory:Domain"];
                 var username = _configuration["ActiveDirectory:AdminUsername"];
                 var password = _configuration["ActiveDirectory:AdminPassword"];
-                var defaultOU = _configuration["ActiveDirectory:DefaultOU"]; // nếu cần
+                var defaultOU = _configuration["ActiveDirectory:DefaultOU"];
 
                 if (string.IsNullOrWhiteSpace(domain) ||
                     string.IsNullOrWhiteSpace(username) ||
                     string.IsNullOrWhiteSpace(password))
                 {
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        IsConnected = false;
-                        StatusMessage = "Configuration missing. Please update Settings.";
-                    });
+                    _logger.LogWarning("Active Directory credentials not configured");
+                    IsConnected = false;
+                    StatusMessage = "Configuration missing - Please update Settings";
+                    _dialogService.ShowWarning(
+                        "Active Directory credentials are not configured in appsettings.json",
+                        "Configuration Required");
                     return;
                 }
 
+                // Test connection
                 var connected = await _adService.TestConnectionAsync(domain, username, password);
 
-                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                if (connected)
                 {
-                    if (connected)
-                    {
-                        _adService.SetCredentials(domain, username, password, defaultOU);
-                        IsConnected = true;
-                        StatusMessage = $"Connected to {domain}";
+                    _adService.SetCredentials(domain, username, password, defaultOU ?? "");
+                    IsConnected = true;
+                    StatusMessage = $"Connected to {domain}";
+                    _logger.LogInformation("Successfully connected to Active Directory: {Domain}", domain);
 
-                        // Load initial data
-                        await RefreshDataAsync();
-                    }
-                    else
-                    {
-                        IsConnected = false;
-                        StatusMessage = "Connection failed - Click Settings to configure";
-                    }
-                });
+                    // Load domain statistics
+                    Stats = await _adService.GetDomainStatsAsync();
+                }
+                else
+                {
+                    IsConnected = false;
+                    StatusMessage = "Connection failed";
+                    _logger.LogWarning("Failed to connect to Active Directory");
+                    _dialogService.ShowError("Failed to connect to Active Directory. Please check your credentials.");
+                }
             }
             catch (Exception ex)
             {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    IsConnected = false;
-                    StatusMessage = $"Error: {ex.Message}";
-                });
+                IsConnected = false;
+                StatusMessage = "Connection error";
+                _logger.LogError(ex, "Error connecting to Active Directory");
+                _dialogService.ShowError($"Error connecting to Active Directory: {ex.Message}");
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
-
+        /// <summary>
+        /// Refresh data for current view
+        /// </summary>
         private async Task RefreshDataAsync()
         {
             if (!IsConnected)
+            {
+                _dialogService.ShowWarning("Not connected to Active Directory");
                 return;
+            }
 
             try
             {
-                StatusMessage = "Refreshing...";
+                SetBusy(true, "Refreshing data...");
+                _logger.LogInformation("Refreshing data for current view");
 
+                // Refresh stats
                 Stats = await _adService.GetDomainStatsAsync();
 
                 // Refresh current view
@@ -173,25 +235,46 @@ namespace ADManagementApp.ViewModels
                 else if (CurrentView == GroupManagementViewModel)
                     await GroupManagementViewModel.LoadGroupsAsync();
 
-                StatusMessage = $"Connected to {Stats?.DomainName ?? "domain"}";
+                _logger.LogInformation("Data refresh completed successfully");
             }
             catch (Exception ex)
             {
-                StatusMessage = "Error refreshing data";
-                MessageBox.Show($"Error refreshing data: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.LogError(ex, "Error refreshing data");
+                _dialogService.ShowError($"Error refreshing data: {ex.Message}");
             }
+            finally
+            {
+                SetBusy(false);
+            }
+        }
+
+        private void NavigateToDashboard()
+        {
+            _logger.LogDebug("Navigating to Dashboard");
+            _navigationService.NavigateTo(DashboardViewModel);
+            // User will manually refresh data when needed
+        }
+
+        private void NavigateToUsers()
+        {
+            _logger.LogDebug("Navigating to User Management");
+            _navigationService.NavigateTo(UserManagementViewModel);
+            // User will manually load/search users when needed
+        }
+
+        private void NavigateToGroups()
+        {
+            _logger.LogDebug("Navigating to Group Management");
+            _navigationService.NavigateTo(GroupManagementViewModel);
+            // User will manually load/search groups when needed
         }
 
         private void ShowSettings()
         {
-            var settingsWindow = new Views.SettingsWindow(_adService);
-            if (settingsWindow.ShowDialog() == true)
-            {
-                // Reload connection with new settings
-                Task.Run(async () => await AutoConnectAsync());
-            }
+            _logger.LogDebug("Opening Settings");
+            _dialogService.ShowInformation("Settings functionality will be implemented soon", "Settings");
         }
-    }
 
+        #endregion
+    }
 }

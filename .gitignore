@@ -103,3 +103,4 @@ wwwroot/lib/
 node_modules/
 
 # End of .gitignore
+/ADManagementApp/obj/Debug/net8.0-windows/Views/UserManagementView.g.i.cs
