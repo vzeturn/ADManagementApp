@@ -16,6 +16,7 @@ namespace ADManagementApp.ViewModels
     public class MainViewModel : BaseViewModel
     {
         private readonly IConfiguration _configuration;
+        private readonly ICredentialService _credentialService;
         private readonly IADService _adService;
         private readonly INavigationService _navigationService;
         private readonly IDialogService _dialogService;
@@ -28,6 +29,7 @@ namespace ADManagementApp.ViewModels
 
         public MainViewModel(
             IConfiguration configuration,
+            ICredentialService credentialService,
             IADService adService,
             INavigationService navigationService,
             IDialogService dialogService,
@@ -37,6 +39,7 @@ namespace ADManagementApp.ViewModels
             ILogger<MainViewModel> logger)
         {
             _configuration = configuration;
+            _credentialService = credentialService;
             _adService = adService;
             _navigationService = navigationService;
             _dialogService = dialogService;
@@ -147,42 +150,70 @@ namespace ADManagementApp.ViewModels
         }
 
         /// <summary>
-        /// Connect to Active Directory using configuration
+        /// SECURE Connect to Active Directory using CredentialService
         /// </summary>
         private async Task ConnectToActiveDirectoryAsync()
         {
             try
             {
-                SetBusy(true, "Connecting to Active Directory...");
+                SetBusy(true, "Loading credentials...");
                 StatusMessage = "Connecting...";
 
-                var domain = _configuration["ActiveDirectory:Domain"];
-                var username = _configuration["ActiveDirectory:AdminUsername"];
-                var password = _configuration["ActiveDirectory:AdminPassword"];
-                var defaultOU = _configuration["ActiveDirectory:DefaultOU"];
+                // ✅ TRY TO GET STORED CREDENTIALS FIRST
+                var credentials = await _credentialService.GetCredentialsAsync();
 
-                if (string.IsNullOrWhiteSpace(domain) ||
-                    string.IsNullOrWhiteSpace(username) ||
-                    string.IsNullOrWhiteSpace(password))
+                if (credentials == null)
                 {
-                    _logger.LogWarning("Active Directory credentials not configured");
+                    // No stored credentials - prompt user to go to Settings
                     IsConnected = false;
-                    StatusMessage = "Configuration missing - Please update Settings";
+                    StatusMessage = "Setup required - Please configure credentials in Settings";
+                    _logger.LogWarning("No stored credentials found");
+
                     _dialogService.ShowWarning(
-                        "Active Directory credentials are not configured in appsettings",
-                        "Configuration Required");
+                        "No Active Directory credentials found.\n\n" +
+                        "Please go to Settings and configure your AD connection.",
+                        "Setup Required");
+
+                    // Optionally navigate to Settings
+                    NavigateToSettings();
                     return;
                 }
 
-                // Test connection
-                var connected = await _adService.TestConnectionAsync(domain, username, password);
+                // ✅ CHECK IF CREDENTIALS ARE EXPIRED
+                var expirationHours = _configuration.GetValue<int>("Application:CredentialExpirationHours", 8);
+                if (credentials.IsExpired(expirationHours))
+                {
+                    IsConnected = false;
+                    StatusMessage = "Credentials expired - Please update in Settings";
+                    _logger.LogWarning("Stored credentials are expired");
+
+                    _dialogService.ShowWarning(
+                        "Your stored credentials have expired.\n\n" +
+                        "Please go to Settings to update them.",
+                        "Credentials Expired");
+                    return;
+                }
+
+                // ✅ TEST CONNECTION WITH STORED CREDENTIALS
+                SetBusy(true, $"Connecting to {credentials.Domain}...");
+
+                var connected = await _adService.TestConnectionAsync(
+                    credentials.Domain,
+                    credentials.Username,
+                    credentials.Password);
 
                 if (connected)
                 {
-                    _adService.SetCredentials(domain, username, password, defaultOU ?? "");
+                    // ✅ SET CREDENTIALS FOR AD SERVICE
+                    _adService.SetCredentials(
+                        credentials.Domain,
+                        credentials.Username,
+                        credentials.Password,
+                        _configuration["ActiveDirectory:DefaultOU"] ?? "");
+
                     IsConnected = true;
-                    StatusMessage = $"Connected to {domain}";
-                    _logger.LogInformation("Successfully connected to Active Directory: {Domain}", domain);
+                    StatusMessage = $"Connected to {credentials.Domain}";
+                    _logger.LogInformation("Successfully connected using stored credentials");
 
                     // Load domain statistics
                     Stats = await _adService.GetDomainStatsAsync();
@@ -190,9 +221,12 @@ namespace ADManagementApp.ViewModels
                 else
                 {
                     IsConnected = false;
-                    StatusMessage = "Connection failed";
-                    _logger.LogWarning("Failed to connect to Active Directory");
-                    _dialogService.ShowError("Failed to connect to Active Directory. Please check your credentials.");
+                    StatusMessage = "Connection failed - Check Settings";
+                    _logger.LogWarning("Connection failed with stored credentials");
+
+                    _dialogService.ShowError(
+                        "Failed to connect to Active Directory.\n\n" +
+                        "Your stored credentials may be invalid. Please update them in Settings.");
                 }
             }
             catch (Exception ex)

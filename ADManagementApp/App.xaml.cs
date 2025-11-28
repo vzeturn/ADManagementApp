@@ -1,14 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Windows;
+﻿using ADManagementApp.Models;
+using ADManagementApp.Services;
+using ADManagementApp.ViewModels;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory;
 using Serilog;
-using ADManagementApp.Services;
-using ADManagementApp.ViewModels;
+using System;
+using System.IO;
+using System.Windows;
 
 namespace ADManagementApp
 {
@@ -81,44 +82,45 @@ namespace ADManagementApp
             // Configuration
             services.AddSingleton(configuration);
 
-            // Memory Cache for CachedADService
+            // Bind configuration sections to strongly-typed classes
+            services.Configure<ActiveDirectorySettings>(
+                configuration.GetSection("ActiveDirectory"));
+            services.Configure<ApplicationSettings>(
+                configuration.GetSection("Application"));
+            services.Configure<SecuritySettings>(
+                configuration.GetSection("Security"));
+
+            // Memory Cache
             services.AddMemoryCache();
 
-            // Core Services - New Improvements
+            // ✅ SECURE CREDENTIAL MANAGEMENT
             services.AddSingleton<ICredentialService, CredentialService>();
+
+            // Core Services with Audit and Validation
             services.AddSingleton<IAuditService, AuditService>();
             services.AddSingleton<IValidationService, ValidationService>();
 
-            // AD Service Chain: Core -> Cached -> Resilient
-            // This creates a layered architecture for reliability and performance
-            services.AddSingleton<ADService>(); // Core implementation
-
+            // AD Service Chain: Core → Cached → Resilient
+            services.AddSingleton<ADService>();
             services.AddSingleton<IADService>(sp =>
             {
-                var logger1 = sp.GetRequiredService<ILogger<ADService>>();
                 var coreService = sp.GetRequiredService<ADService>();
-
-                Log.Information("Building AD Service chain: Core -> Cached -> Resilient");
-
-                // Layer 1: Caching for performance
                 var cache = sp.GetRequiredService<IMemoryCache>();
                 var logger2 = sp.GetRequiredService<ILogger<CachedADService>>();
                 var cachedService = new CachedADService(coreService, cache, logger2);
-                Log.Information("✓ CachedADService initialized (5-minute cache)");
 
-                // Layer 2: Resilience for reliability
                 var logger3 = sp.GetRequiredService<ILogger<ResilientADService>>();
-                var resilientService = new ResilientADService(cachedService, logger3);
-                Log.Information("✓ ResilientADService initialized (3x retry with backoff)");
-
-                return resilientService;
+                return new ResilientADService(cachedService, logger3);
             });
 
             // UI Services
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<INavigationService, NavigationService>();
 
-            // ViewModels - Register as Transient to get new instances
+            // ✅ ADD SettingsViewModel
+            services.AddTransient<SettingsViewModel>();
+
+            // Other ViewModels
             services.AddTransient<MainViewModel>();
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<UserManagementViewModel>();
@@ -127,8 +129,7 @@ namespace ADManagementApp
             // Windows
             services.AddTransient<MainWindow>();
 
-            Log.Information("✓ All services configured successfully");
-            Log.Information("Service Chain: ResilientADService -> CachedADService -> ADService");
+            Log.Information("✓ All services configured with secure credential management");
         }
 
         protected override async void OnExit(ExitEventArgs e)
