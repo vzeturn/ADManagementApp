@@ -1,5 +1,105 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
+﻿# .gitignore for a .NET 8 WPF / Visual Studio project
+# Covers Visual Studio, VS Code, JetBrains Rider, NuGet, dotnet, OS files and common artifacts
 
-/.vs
+# Build Folders
+[Bb]in/
+[Oo]bj/
+artifacts/
+
+# VS/VSCode/Rider
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.ide
+*.sln.iml
+
+# Rider
+*.DotSettings.user
+
+# MonoDevelop
+*.pidb
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+# Publish results
+publish/
+*.Publish.xml
+
+# Test output
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Logs
+*.log
+
+# Database and local data files
+*.db
+*.sdf
+*.sqlite
+*.sqlite3
+
+# User-specific files
+*.rsuser
+*.userprefs
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Visual Studio profiler
+*.vsp
+*.vspx
+
+# dotCover
+*.dotCover
+
+# IIS Express
+/.vs/**/applicationhost.config
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Certificates and keys
+*.pfx
+*.p12
+*.key
+
+# Archive files
+*.zip
+*.tar.gz
+*.tar
+*.rar
+
+# Secrets and local config (do NOT commit secrets)
+# The project uses appsettings.json for credentials - ensure secrets are not committed.
+appsettings.json
+appsettings.*.local
+.env
+secrets.json
+
+# If you want to keep a template for config, track an example file instead
+# appsettings.json.example
+
+# Optional: Visual Studio Code workspace settings containing absolute paths
+*.code-workspace
+
+# Optional: Ignore compiled Razor views, front-end artifacts if present
+wwwroot/lib/
+node_modules/
+
+# End of .gitignore

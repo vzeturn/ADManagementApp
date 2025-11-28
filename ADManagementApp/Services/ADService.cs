@@ -13,12 +13,14 @@ namespace ADManagementApp.Services
         private string _domain = string.Empty;
         private string _username = string.Empty;
         private string _password = string.Empty;
+        private string _defaultOU = string.Empty;
 
-        public void SetCredentials(string domain, string username, string password)
+        public void SetCredentials(string domain, string username, string password, string defaultOU = "")
         {
             _domain = domain;
             _username = username;
             _password = password;
+            _defaultOU = defaultOU;
         }
 
         public async Task<bool> TestConnectionAsync(string domain, string username, string password)
@@ -43,8 +45,24 @@ namespace ADManagementApp.Services
         {
             if (string.IsNullOrEmpty(_domain))
                 throw new InvalidOperationException("Domain credentials not set. Please configure connection first.");
-            
-            return new PrincipalContext(ContextType.Domain, _domain, _username, _password);
+
+            if (!string.IsNullOrEmpty(_defaultOU))
+            {
+                return new PrincipalContext(
+                    ContextType.Domain,
+                    _domain,
+                    _defaultOU,
+                    _username,
+                    _password
+                );
+            }
+
+            return new PrincipalContext(
+                ContextType.Domain,
+                _domain,
+                _username,
+                _password
+            );
         }
 
         #region Users

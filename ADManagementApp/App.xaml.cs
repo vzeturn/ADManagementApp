@@ -1,11 +1,22 @@
-﻿using System.Windows;
-using ADManagementApp.Services;
+﻿using ADManagementApp.Services;
 using ADManagementApp.ViewModels;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using System.Windows;
 
 namespace ADManagementApp
 {
     public partial class App : Application
     {
+        public IConfiguration Configuration { get; }
+        public App()
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+            Configuration = builder.Build();
+        }
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -22,7 +33,7 @@ namespace ADManagementApp
             var adService = new ADService();
 
             // Create main window with ViewModel
-            var mainViewModel = new MainViewModel(adService);
+            var mainViewModel = new MainViewModel(Configuration, adService);
             var mainWindow = new MainWindow
             {
                 DataContext = mainViewModel

@@ -129,7 +129,8 @@ namespace ADManagementApp.Views
                 _adService.SetCredentials(
                     DomainTextBox.Text,
                     UsernameTextBox.Text,
-                    PasswordBox.Password);
+                    PasswordBox.Password,
+                    "");
 
                 // In production, save to appsettings.json here
                 // SaveToConfiguration();

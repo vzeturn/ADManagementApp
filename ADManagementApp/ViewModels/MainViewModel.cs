@@ -1,10 +1,13 @@
+﻿using ADManagementApp.Helpers;
+using ADManagementApp.Models;
+using ADManagementApp.Services;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Configuration;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using ADManagementApp.Helpers;
-using ADManagementApp.Models;
-using ADManagementApp.Services;
 
 namespace ADManagementApp.ViewModels
 {
@@ -15,9 +18,11 @@ namespace ADManagementApp.ViewModels
         private DomainStats? _stats;
         private bool _isConnected;
         private string _statusMessage = "Not connected";
+        private readonly IConfiguration _configuration;
 
-        public MainViewModel(IADService adService)
+        public MainViewModel(IConfiguration configuration, IADService adService)
         {
+            _configuration = configuration;
             _adService = adService;
 
             // Initialize ViewModels
@@ -38,6 +43,7 @@ namespace ADManagementApp.ViewModels
 
             // Auto-connect using credentials from appsettings.json
             Task.Run(async () => await AutoConnectAsync());
+            Thread.Sleep(3000);
         }
 
         public DashboardViewModel DashboardViewModel { get; }
@@ -99,11 +105,23 @@ namespace ADManagementApp.ViewModels
                     StatusMessage = "Connecting...";
                 });
 
-                // Try to connect using credentials from appsettings.json
-                // You should load these from configuration
-                var domain = "corp.haier.com";
-                var username = "240156260";
-                var password = "";
+                // Load configuration from appsettings.json
+                var domain = _configuration["ActiveDirectory:Domain"];
+                var username = _configuration["ActiveDirectory:AdminUsername"];
+                var password = _configuration["ActiveDirectory:AdminPassword"];
+                var defaultOU = _configuration["ActiveDirectory:DefaultOU"]; // nếu cần
+
+                if (string.IsNullOrWhiteSpace(domain) ||
+                    string.IsNullOrWhiteSpace(username) ||
+                    string.IsNullOrWhiteSpace(password))
+                {
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        IsConnected = false;
+                        StatusMessage = "Configuration missing. Please update Settings.";
+                    });
+                    return;
+                }
 
                 var connected = await _adService.TestConnectionAsync(domain, username, password);
 
@@ -111,7 +129,7 @@ namespace ADManagementApp.ViewModels
                 {
                     if (connected)
                     {
-                        _adService.SetCredentials(domain, username, password);
+                        _adService.SetCredentials(domain, username, password, defaultOU);
                         IsConnected = true;
                         StatusMessage = $"Connected to {domain}";
 
@@ -134,6 +152,7 @@ namespace ADManagementApp.ViewModels
                 });
             }
         }
+
 
         private async Task RefreshDataAsync()
         {

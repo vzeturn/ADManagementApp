@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Ứng dụng quản lý Domain Controller")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a60aaededebed626b35515b81282bb5038b2a7d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1931f49397077be54b28e7847f4635c9a052267f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Active Directory Management Tool")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ADManagementApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
