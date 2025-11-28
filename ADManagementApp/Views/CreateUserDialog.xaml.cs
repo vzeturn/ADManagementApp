@@ -1,20 +1,29 @@
 ﻿using System;
 using System.Windows;
 using ADManagementApp.Models;
+using ADManagementApp.Services;
 
 namespace ADManagementApp.Views
 {
     public partial class CreateUserDialog : Window
     {
+        private readonly IValidationService _validationService;
         public ADUser? NewUser { get; private set; }
         public string Password { get; private set; } = string.Empty;
 
-        public CreateUserDialog()
+        // Constructor with ValidationService injection
+        public CreateUserDialog(IValidationService validationService)
         {
             InitializeComponent();
+            _validationService = validationService;
 
             // Set focus to first field
             Loaded += (s, e) => UsernameTextBox.Focus();
+        }
+
+        // Fallback constructor for design-time
+        public CreateUserDialog() : this(new ValidationService())
+        {
         }
 
         private void DisplayNameTextBox_LostFocus(object sender, RoutedEventArgs e)
@@ -34,101 +43,76 @@ namespace ADManagementApp.Views
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
-            // Validate required fields
-            if (string.IsNullOrWhiteSpace(UsernameTextBox.Text))
+            // Validate username using ValidationService
+            var usernameValidation = _validationService.ValidateUsername(UsernameTextBox.Text?.Trim() ?? "");
+            if (!usernameValidation.IsValid)
             {
-                MessageBox.Show("Please enter a username.", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowValidationError("Username Validation", usernameValidation.ErrorMessage);
                 UsernameTextBox.Focus();
                 return;
             }
 
+            // Validate required fields
             if (string.IsNullOrWhiteSpace(FirstNameTextBox.Text))
             {
-                MessageBox.Show("Please enter first name.", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowValidationError("Validation Error", "Please enter first name.");
                 FirstNameTextBox.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(LastNameTextBox.Text))
             {
-                MessageBox.Show("Please enter last name.", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowValidationError("Validation Error", "Please enter last name.");
                 LastNameTextBox.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(DisplayNameTextBox.Text))
             {
-                MessageBox.Show("Please enter display name.", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowValidationError("Validation Error", "Please enter display name.");
                 DisplayNameTextBox.Focus();
                 return;
             }
 
+            // Validate password using ValidationService
             if (string.IsNullOrWhiteSpace(PasswordBox.Password))
             {
-                MessageBox.Show("Please enter a password.", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowValidationError("Validation Error", "Please enter a password.");
+                PasswordBox.Focus();
+                return;
+            }
+
+            var passwordValidation = _validationService.ValidatePassword(PasswordBox.Password);
+            if (!passwordValidation.IsValid)
+            {
+                ShowValidationError("Password Validation", passwordValidation.ErrorMessage);
                 PasswordBox.Focus();
                 return;
             }
 
             if (PasswordBox.Password != ConfirmPasswordBox.Password)
             {
-                MessageBox.Show("Passwords do not match!", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowValidationError("Validation Error", "Passwords do not match!");
                 ConfirmPasswordBox.Focus();
                 return;
             }
 
-            // Validate password strength
-            if (PasswordBox.Password.Length < 8)
-            {
-                MessageBox.Show("Password must be at least 8 characters long.", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                PasswordBox.Focus();
-                return;
-            }
-
-            // Validate username (alphanumeric and some special characters)
-            var username = UsernameTextBox.Text.Trim();
-            if (username.Length > 20)
-            {
-                MessageBox.Show("Username must be 20 characters or less.", "Validation Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                UsernameTextBox.Focus();
-                return;
-            }
-
-            foreach (char c in username)
-            {
-                if (!char.IsLetterOrDigit(c) && c != '-' && c != '_' && c != '.')
-                {
-                    MessageBox.Show("Username can only contain letters, numbers, hyphens, underscores, and periods.",
-                        "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    UsernameTextBox.Focus();
-                    return;
-                }
-            }
-
-            // Validate email if provided
+            // Validate email if provided using ValidationService
             if (!string.IsNullOrWhiteSpace(EmailTextBox.Text))
             {
-                if (!EmailTextBox.Text.Contains("@") || !EmailTextBox.Text.Contains("."))
+                var emailValidation = _validationService.ValidateEmail(EmailTextBox.Text.Trim());
+                if (!emailValidation.IsValid)
                 {
-                    MessageBox.Show("Please enter a valid email address.", "Validation Error",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    ShowValidationError("Email Validation", emailValidation.ErrorMessage);
                     EmailTextBox.Focus();
                     return;
                 }
             }
 
             // Create the new user object
-            NewUser = new ADUser
+            var user = new ADUser
             {
-                SamAccountName = username,
+                SamAccountName = UsernameTextBox.Text.Trim(),
                 GivenName = FirstNameTextBox.Text.Trim(),
                 Surname = LastNameTextBox.Text.Trim(),
                 DisplayName = DisplayNameTextBox.Text.Trim(),
@@ -142,11 +126,28 @@ namespace ADManagementApp.Views
                 UserCannotChangePassword = false
             };
 
-            // Set password
+            // Validate complete user object
+            var userValidation = _validationService.ValidateUser(user);
+            if (!userValidation.IsValid)
+            {
+                ShowValidationError("User Validation", userValidation.ErrorMessage);
+                return;
+            }
+
+            NewUser = user;
             Password = PasswordBox.Password;
 
             DialogResult = true;
             Close();
+        }
+
+        private void ShowValidationError(string title, string message)
+        {
+            MessageBox.Show(
+                message,
+                title,
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

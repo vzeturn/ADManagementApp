@@ -169,7 +169,7 @@ namespace ADManagementApp.ViewModels
                     IsConnected = false;
                     StatusMessage = "Configuration missing - Please update Settings";
                     _dialogService.ShowWarning(
-                        "Active Directory credentials are not configured in appsettings.json",
+                        "Active Directory credentials are not configured in appsettings",
                         "Configuration Required");
                     return;
                 }

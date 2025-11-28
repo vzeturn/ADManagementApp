@@ -13,12 +13,13 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("AQUA")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyDescriptionAttribute("Ứng dụng quản lý Domain Controller")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6ba9ccae8fc3743bbfeeba43c833902d69a35f50")]
+[assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © 2024")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("Enterprise-grade Active Directory Management Application")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0+33b0f18b87c1ded0fcd2af15ff9864418ef49238")]
 [assembly: System.Reflection.AssemblyProductAttribute("Active Directory Management Tool")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ADManagementApp")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("2.0.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
 

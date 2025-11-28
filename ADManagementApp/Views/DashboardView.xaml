@@ -46,11 +46,9 @@
                     </StackPanel>
                 </Button>
 
-                <Separator Style="{StaticResource MaterialDesignVerticalSeparator}" Margin="5,0"/>
-
                 <Button Style="{StaticResource MaterialDesignRaisedButton}"
                        Command="{Binding CreateUserCommand}"
-                       Margin="10,0,10,0"
+                       Margin="15,0,10,0"
                        Background="{DynamicResource PrimaryHueMidBrush}"
                        BorderBrush="{DynamicResource PrimaryHueMidBrush}"
                        ToolTip="Create a new user">

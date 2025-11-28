@@ -1,5 +1,4 @@
-﻿<!-- App.xaml - Updated with DataTemplates -->
-<Application x:Class="ADManagementApp.App"
+﻿<Application x:Class="ADManagementApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -9,11 +8,11 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Material Design -->
+                <!-- Material Design Themes -->
                 <materialDesign:BundledTheme BaseTheme="Light" 
                                            PrimaryColor="Blue" 
                                            SecondaryColor="Amber" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- DataTemplates for MVVM - Maps ViewModels to Views -->

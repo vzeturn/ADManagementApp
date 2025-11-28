@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using ADManagementApp.Services;
 using ADManagementApp.ViewModels;
@@ -37,14 +38,14 @@ namespace ADManagementApp
 
             try
             {
-                Log.Information("Starting Active Directory Management Application");
+                Log.Information("Starting Active Directory Management Application v2.0");
 
                 // Build host
                 _host = Host.CreateDefaultBuilder()
                     .ConfigureAppConfiguration((context, config) =>
                     {
                         config.SetBasePath(AppDomain.CurrentDomain.BaseDirectory);
-                        config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                        config.AddJsonFile("appsettings.secure.json", optional: true, reloadOnChange: true);
                         config.AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json",
                             optional: true, reloadOnChange: true);
                     })
@@ -61,7 +62,7 @@ namespace ADManagementApp
                 var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
                 mainWindow.Show();
 
-                Log.Information("Application started successfully");
+                Log.Information("Application started successfully with improved service chain");
             }
             catch (Exception ex)
             {
@@ -80,8 +81,40 @@ namespace ADManagementApp
             // Configuration
             services.AddSingleton(configuration);
 
-            // Services
-            services.AddSingleton<IADService, ADService>();
+            // Memory Cache for CachedADService
+            services.AddMemoryCache();
+
+            // Core Services - New Improvements
+            services.AddSingleton<ICredentialService, CredentialService>();
+            services.AddSingleton<IAuditService, AuditService>();
+            services.AddSingleton<IValidationService, ValidationService>();
+
+            // AD Service Chain: Core -> Cached -> Resilient
+            // This creates a layered architecture for reliability and performance
+            services.AddSingleton<ADService>(); // Core implementation
+
+            services.AddSingleton<IADService>(sp =>
+            {
+                var logger1 = sp.GetRequiredService<ILogger<ADService>>();
+                var coreService = sp.GetRequiredService<ADService>();
+
+                Log.Information("Building AD Service chain: Core -> Cached -> Resilient");
+
+                // Layer 1: Caching for performance
+                var cache = sp.GetRequiredService<IMemoryCache>();
+                var logger2 = sp.GetRequiredService<ILogger<CachedADService>>();
+                var cachedService = new CachedADService(coreService, cache, logger2);
+                Log.Information("✓ CachedADService initialized (5-minute cache)");
+
+                // Layer 2: Resilience for reliability
+                var logger3 = sp.GetRequiredService<ILogger<ResilientADService>>();
+                var resilientService = new ResilientADService(cachedService, logger3);
+                Log.Information("✓ ResilientADService initialized (3x retry with backoff)");
+
+                return resilientService;
+            });
+
+            // UI Services
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<INavigationService, NavigationService>();
 
@@ -94,7 +127,8 @@ namespace ADManagementApp
             // Windows
             services.AddTransient<MainWindow>();
 
-            Log.Information("Services configured successfully");
+            Log.Information("✓ All services configured successfully");
+            Log.Information("Service Chain: ResilientADService -> CachedADService -> ADService");
         }
 
         protected override async void OnExit(ExitEventArgs e)
