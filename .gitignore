@@ -1,12 +1,15 @@
-﻿# .gitignore for a .NET 8 WPF / Visual Studio project
+﻿# .gitignore for .NET 8 WPF / Visual Studio project
 # Covers Visual Studio, VS Code, JetBrains Rider, NuGet, dotnet, OS files and common artifacts
 
-# Build Folders
-[Bb]in/
-[Oo]bj/
+## Build and Compilation
+bin/
+obj/
+out/
 artifacts/
+*.CodeAnalysisLog.xml
+*.lastcodeanalysissucceeded
 
-# VS/VSCode/Rider
+## Visual Studio
 .vs/
 .vscode/
 .idea/
@@ -14,93 +17,122 @@ artifacts/
 *.user
 *.userosscache
 *.sln.docstates
-*.sln.ide
-*.sln.iml
+*.userprefs
 
-# Rider
+## Visual Studio Code
+settings.json
+launch.json
+tasks.json
+*.code-workspace
+
+## Resharper / JetBrains Rider
+.idea/
+_ReSharper*/
+*.[Rr]e[Ss]harper
 *.DotSettings.user
+riderModule.iml
+.idea_modules/
 
-# MonoDevelop
+## MonoDevelop
 *.pidb
 
-# NuGet
+## NuGet
 packages/
+!packages/repositories.config
 *.nupkg
 *.snupkg
+.nuget/
 project.lock.json
 project.fragment.lock.json
 
-# Publish results
+## Publish Output
 publish/
+PublishProfiles/
 *.Publish.xml
+*.pubxml
+*.pubxml.user
 
-# Test output
+## Test Results
 TestResults/
 *.trx
 *.coverage
 *.coveragexml
+OpenCover/
 
-# Logs
+## Profiling
+*.vsp
+*.vspx
+*.psess
+*.vsp
+.vspx
+
+## dotCover
+*.dotCover
+
+## Visual Studio profiler
+*.prof
+
+## Build results and generated files
+BenchmarkDotNet.Artifacts/
+
+## IIS Express
+.vs/IISExpress/
+/.vs/**/applicationhost.config
+
+## Logs and diagnostic
 *.log
+logs/
+*.stackdump
 
-# Database and local data files
+## Database and local data files
 *.db
 *.sdf
 *.sqlite
 *.sqlite3
+*.mdf
+*.ldf
+*.ndf
 
-# User-specific files
-*.rsuser
-*.userprefs
-
-# Resharper
-_ReSharper*/
-*.[Rr]e[Ss]harper
-*.DotSettings.user
-
-# Visual Studio profiler
-*.vsp
-*.vspx
-
-# dotCover
-*.dotCover
-
-# IIS Express
-/.vs/**/applicationhost.config
-
-# OS generated files
-.DS_Store
-Thumbs.db
-ehthumbs.db
-desktop.ini
-
-# Certificates and keys
+## Certificates and keys
 *.pfx
 *.p12
 *.key
+*.crt
+*.cer
 
-# Archive files
+## OS Generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.lnk
+
+## Archive files
 *.zip
 *.tar.gz
 *.tar
 *.rar
+*.7z
 
-# Secrets and local config (do NOT commit secrets)
-# The project uses appsettings.json for credentials - ensure secrets are not committed.
+## Secrets, credentials, and local configuration
 appsettings.json
+appsettings.*.json
+!appsettings.Development.json
+!appsettings.json.example
 appsettings.*.local
 .env
+.env.local
+.env.*.local
 secrets.json
 
-# If you want to keep a template for config, track an example file instead
-# appsettings.json.example
+## IDE and Editor artifacts
+.editorconfig.local
+.vscodeconfig
 
-# Optional: Visual Studio Code workspace settings containing absolute paths
-*.code-workspace
-
-# Optional: Ignore compiled Razor views, front-end artifacts if present
-wwwroot/lib/
-node_modules/
-
-# End of .gitignore
-/ADManagementApp/obj/Debug/net8.0-windows/Views/UserManagementView.g.i.cs
+## Build artifacts for user-specific views
+ADManagementApp/obj/Debug/net8.0-windows/Views/
+!ADManagementApp/obj/Debug/net8.0-windows/Views/

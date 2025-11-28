@@ -1,5 +1,5 @@
 ﻿ADManagementApp
-
+2.0.0.0
 
 winexe
 C#
@@ -12,9 +12,9 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR
 C:\home\claude\ADManagementApp\ADManagementApp\App.xaml
 12-142382816
 22-2100832518
-37-1617501830
+40-1545175431
 2432124890406
 MainWindow.xaml;Views\AddMemberDialog.xaml;Views\CreateGroupDialog.xaml;Views\CreateUserDialog.xaml;Views\DashboardView.xaml;Views\EditUserDialog.xaml;Views\GroupManagementView.xaml;Views\GroupMembersDialog.xaml;Views\ResetPasswordDialog.xaml;Views\SettingsView.xaml;Views\UserDetailsDialog.xaml;Views\UserManagementView.xaml;
 
-False
+True
 
