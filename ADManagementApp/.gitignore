@@ -1,0 +1,138 @@
+# .gitignore for .NET 8 WPF / Visual Studio project
+# Covers Visual Studio, VS Code, JetBrains Rider, NuGet, dotnet, OS files and common artifacts
+
+## Build and Compilation
+bin/
+obj/
+out/
+artifacts/
+*.CodeAnalysisLog.xml
+*.lastcodeanalysissucceeded
+
+## Visual Studio
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+## Visual Studio Code
+settings.json
+launch.json
+tasks.json
+*.code-workspace
+
+## Resharper / JetBrains Rider
+.idea/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+riderModule.iml
+.idea_modules/
+
+## MonoDevelop
+*.pidb
+
+## NuGet
+packages/
+!packages/repositories.config
+*.nupkg
+*.snupkg
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+## Publish Output
+publish/
+PublishProfiles/
+*.Publish.xml
+*.pubxml
+*.pubxml.user
+
+## Test Results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+OpenCover/
+
+## Profiling
+*.vsp
+*.vspx
+*.psess
+*.vsp
+.vspx
+
+## dotCover
+*.dotCover
+
+## Visual Studio profiler
+*.prof
+
+## Build results and generated files
+BenchmarkDotNet.Artifacts/
+
+## IIS Express
+.vs/IISExpress/
+/.vs/**/applicationhost.config
+
+## Logs and diagnostic
+*.log
+logs/
+*.stackdump
+
+## Database and local data files
+*.db
+*.sdf
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+*.ndf
+
+## Certificates and keys
+*.pfx
+*.p12
+*.key
+*.crt
+*.cer
+
+## OS Generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.lnk
+
+## Archive files
+*.zip
+*.tar.gz
+*.tar
+*.rar
+*.7z
+
+## Secrets, credentials, and local configuration
+appsettings.json
+appsettings.*.json
+!appsettings.Development.json
+!appsettings.json.example
+appsettings.*.local
+.env
+.env.local
+.env.*.local
+secrets.json
+
+## IDE and Editor artifacts
+.editorconfig.local
+.vscodeconfig
+
+## Build artifacts for user-specific views
+ADManagementApp/obj/Debug/net8.0-windows/Views/
+!ADManagementApp/obj/Debug/net8.0-windows/Views/

@@ -16,5 +16,5 @@ C:\home\claude\ADManagementApp\ADManagementApp\App.xaml
 2432124890406
 MainWindow.xaml;Views\AddMemberDialog.xaml;Views\CreateGroupDialog.xaml;Views\CreateUserDialog.xaml;Views\DashboardView.xaml;Views\EditUserDialog.xaml;Views\GroupManagementView.xaml;Views\GroupMembersDialog.xaml;Views\ResetPasswordDialog.xaml;Views\SettingsView.xaml;Views\UserDetailsDialog.xaml;Views\UserManagementView.xaml;
 
-False
+True
 
