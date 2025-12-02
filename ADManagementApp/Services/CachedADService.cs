@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
@@ -53,7 +53,7 @@ namespace ADManagementApp.Services
         {
             var cacheKey = $"{USERS_CACHE_KEY}_{searchTerm}";
 
-            if (_cache.TryGetValue(cacheKey, out List<ADUser> cachedUsers))
+            if (_cache.TryGetValue(cacheKey, out List<ADUser>? cachedUsers) && cachedUsers != null)
             {
                 _logger.LogDebug("Cache hit for users with search term: {SearchTerm}", searchTerm);
                 return cachedUsers;
@@ -173,7 +173,7 @@ namespace ADManagementApp.Services
         {
             var cacheKey = $"{GROUPS_CACHE_KEY}_{searchTerm}";
 
-            if (_cache.TryGetValue(cacheKey, out List<ADGroup> cachedGroups))
+            if (_cache.TryGetValue(cacheKey, out List<ADGroup>? cachedGroups) && cachedGroups != null)
             {
                 _logger.LogDebug("Cache hit for groups with search term: {SearchTerm}", searchTerm);
                 return cachedGroups;
@@ -258,7 +258,7 @@ namespace ADManagementApp.Services
 
         public async Task<DomainStats> GetDomainStatsAsync()
         {
-            if (_cache.TryGetValue(STATS_CACHE_KEY, out DomainStats cachedStats))
+            if (_cache.TryGetValue(STATS_CACHE_KEY, out DomainStats? cachedStats) && cachedStats != null)
             {
                 _logger.LogDebug("Cache hit for domain stats");
                 return cachedStats;

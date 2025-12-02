@@ -1,22 +1,54 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using ADManagementApp.Models;
 
 namespace ADManagementApp.Services
 {
     /// <summary>
-    /// Centralized validation service for all AD operations
-    /// Prevents invalid data from reaching Active Directory
+    /// Centralized validation service for all AD operations.
+    /// Prevents invalid data from reaching Active Directory.
     /// </summary>
     public interface IValidationService
     {
+        /// <summary>
+        /// Validates a username against AD requirements.
+        /// </summary>
+        /// <param name="username">The username to validate (1-20 alphanumeric characters with -_.)</param>
+        /// <returns>Tuple with validation result and error message if invalid</returns>
         (bool IsValid, string ErrorMessage) ValidateUsername(string username);
+
+        /// <summary>
+        /// Validates a password against complexity requirements.
+        /// </summary>
+        /// <param name="password">The password to validate (8-128 characters, uppercase, lowercase, digit, special)</param>
+        /// <returns>Tuple with validation result and error message if invalid</returns>
         (bool IsValid, string ErrorMessage) ValidatePassword(string password);
+
+        /// <summary>
+        /// Validates an email address format.
+        /// </summary>
+        /// <param name="email">The email address to validate</param>
+        /// <returns>Tuple with validation result and error message if invalid</returns>
         (bool IsValid, string ErrorMessage) ValidateEmail(string email);
+
+        /// <summary>
+        /// Validates a complete ADUser object for creation or update.
+        /// </summary>
+        /// <param name="user">The user object to validate</param>
+        /// <returns>Tuple with validation result and error message if invalid</returns>
         (bool IsValid, string ErrorMessage) ValidateUser(ADUser user);
+
+        /// <summary>
+        /// Validates a complete ADGroup object for creation or update.
+        /// </summary>
+        /// <param name="group">The group object to validate</param>
+        /// <returns>Tuple with validation result and error message if invalid</returns>
         (bool IsValid, string ErrorMessage) ValidateGroup(ADGroup group);
     }
 
+    /// <summary>
+    /// Implementation of IValidationService with comprehensive validation rules.
+    /// </summary>
     public class ValidationService : IValidationService
     {
         // Username: 1-20 characters, alphanumeric, dash, underscore, period
@@ -67,17 +99,25 @@ namespace ADManagementApp.Services
 
             foreach (char c in password)
             {
-                if (char.IsUpper(c)) hasUpper = true;
-                else if (char.IsLower(c)) hasLower = true;
-                else if (char.IsDigit(c)) hasDigit = true;
-                else if (!char.IsLetterOrDigit(c)) hasSpecial = true;
+                if (char.IsUpper(c))
+                    hasUpper = true;
+                else if (char.IsLower(c))
+                    hasLower = true;
+                else if (char.IsDigit(c))
+                    hasDigit = true;
+                else if (!char.IsLetterOrDigit(c))
+                    hasSpecial = true;
             }
 
             int complexityMet = 0;
-            if (hasUpper) complexityMet++;
-            if (hasLower) complexityMet++;
-            if (hasDigit) complexityMet++;
-            if (hasSpecial) complexityMet++;
+            if (hasUpper)
+                complexityMet++;
+            if (hasLower)
+                complexityMet++;
+            if (hasDigit)
+                complexityMet++;
+            if (hasSpecial)
+                complexityMet++;
 
             if (complexityMet < 3)
                 return (false, "Password must contain at least 3 of: uppercase, lowercase, numbers, special characters");

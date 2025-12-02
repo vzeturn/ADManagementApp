@@ -8,6 +8,11 @@ using ADManagementApp.Models;
 
 namespace ADManagementApp.Services
 {
+    /// <summary>
+    /// Core implementation of Active Directory service.
+    /// Handles direct communication with Active Directory for user and group operations.
+    /// This service is wrapped by CachedADService and ResilientADService for production use.
+    /// </summary>
     public class ADService : IADService
     {
         private string _domain = string.Empty;
@@ -15,6 +20,13 @@ namespace ADManagementApp.Services
         private string _password = string.Empty;
         private string _defaultOU = string.Empty;
 
+        /// <summary>
+        /// Sets the credentials for Active Directory authentication.
+        /// </summary>
+        /// <param name="domain">The Active Directory domain.</param>
+        /// <param name="username">The username for authentication.</param>
+        /// <param name="password">The password for authentication.</param>
+        /// <param name="defaultOU">Optional default organizational unit.</param>
         public void SetCredentials(string domain, string username, string password, string defaultOU = "")
         {
             _domain = domain;
@@ -23,6 +35,13 @@ namespace ADManagementApp.Services
             _defaultOU = defaultOU;
         }
 
+        /// <summary>
+        /// Tests the connection to the Active Directory domain asynchronously.
+        /// </summary>
+        /// <param name="domain">The Active Directory domain to test.</param>
+        /// <param name="username">The username for testing.</param>
+        /// <param name="password">The password for testing.</param>
+        /// <returns>True if the connection is successful; otherwise, false.</returns>
         public async Task<bool> TestConnectionAsync(string domain, string username, string password)
         {
             return await Task.Run(() =>
@@ -72,7 +91,7 @@ namespace ADManagementApp.Services
             return await Task.Run(() =>
             {
                 var users = new List<ADUser>();
-                
+
                 try
                 {
                     using (var context = GetPrincipalContext())
@@ -100,6 +119,9 @@ namespace ADManagementApp.Services
             });
         }
 
+        /// <summary>
+        /// Retrieves a specific user by username.
+        /// </summary>
         public async Task<ADUser?> GetUserAsync(string username)
         {
             return await Task.Run(() =>
@@ -139,8 +161,8 @@ namespace ADManagementApp.Services
                             EmailAddress = user.EmailAddress,
                             Enabled = user.Enabled ?? true,
                             Description = user.Description,
-                            UserPrincipalName = string.IsNullOrEmpty(user.UserPrincipalName) 
-                                ? $"{user.SamAccountName}@{_domain}" 
+                            UserPrincipalName = string.IsNullOrEmpty(user.UserPrincipalName)
+                                ? $"{user.SamAccountName}@{_domain}"
                                 : user.UserPrincipalName
                         };
 
@@ -156,7 +178,7 @@ namespace ADManagementApp.Services
                                 de.Properties["title"].Value = user.Title;
                             if (!string.IsNullOrEmpty(user.PhoneNumber))
                                 de.Properties["telephoneNumber"].Value = user.PhoneNumber;
-                            
+
                             de.CommitChanges();
                         }
 
@@ -201,7 +223,7 @@ namespace ADManagementApp.Services
                                 de.Properties["title"].Value = user.Title;
                             if (!string.IsNullOrEmpty(user.PhoneNumber))
                                 de.Properties["telephoneNumber"].Value = user.PhoneNumber;
-                            
+
                             de.CommitChanges();
                         }
 
@@ -299,10 +321,10 @@ namespace ADManagementApp.Services
                             return false;
 
                         userPrincipal.SetPassword(newPassword);
-                        
+
                         if (mustChangePassword)
                             userPrincipal.ExpirePasswordNow();
-                        
+
                         userPrincipal.Save();
                         return true;
                     }
@@ -347,7 +369,7 @@ namespace ADManagementApp.Services
             return await Task.Run(() =>
             {
                 var groups = new List<ADGroup>();
-                
+
                 try
                 {
                     using (var context = GetPrincipalContext())
@@ -573,13 +595,13 @@ namespace ADManagementApp.Services
                 using (DirectoryEntry de = (DirectoryEntry)userPrincipal.GetUnderlyingObject())
                 {
                     if (de.Properties.Contains("department") && de.Properties["department"].Value != null)
-                        user.Department = de.Properties["department"].Value.ToString() ?? string.Empty;
-                    
+                        user.Department = de.Properties["department"].Value?.ToString() ?? string.Empty;
+
                     if (de.Properties.Contains("title") && de.Properties["title"].Value != null)
-                        user.Title = de.Properties["title"].Value.ToString() ?? string.Empty;
-                    
+                        user.Title = de.Properties["title"].Value?.ToString() ?? string.Empty;
+
                     if (de.Properties.Contains("telephoneNumber") && de.Properties["telephoneNumber"].Value != null)
-                        user.PhoneNumber = de.Properties["telephoneNumber"].Value.ToString() ?? string.Empty;
+                        user.PhoneNumber = de.Properties["telephoneNumber"].Value?.ToString() ?? string.Empty;
                 }
             }
             catch { }

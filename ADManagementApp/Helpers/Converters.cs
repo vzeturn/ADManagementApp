@@ -17,7 +17,7 @@ namespace ADManagementApp.Helpers
             {
                 // Check if parameter is "Inverse"
                 bool inverse = parameter?.ToString()?.ToLower() == "inverse";
-                
+
                 if (inverse)
                     return boolValue ? Visibility.Collapsed : Visibility.Visible;
                 else
@@ -46,7 +46,7 @@ namespace ADManagementApp.Helpers
             if (value is bool boolValue)
             {
                 // Green for true (connected/enabled), Red for false
-                return boolValue ? 
+                return boolValue ?
                     new SolidColorBrush(Color.FromRgb(76, 175, 80)) : // Green
                     new SolidColorBrush(Color.FromRgb(244, 67, 54));   // Red
             }
@@ -68,7 +68,7 @@ namespace ADManagementApp.Helpers
         {
             bool inverse = parameter?.ToString()?.ToLower() == "inverse";
             bool isNull = value == null;
-            
+
             if (inverse)
                 return isNull ? Visibility.Visible : Visibility.Collapsed;
             else
@@ -114,7 +114,7 @@ namespace ADManagementApp.Helpers
         {
             bool inverse = parameter?.ToString()?.ToLower() == "inverse";
             bool isEmpty = string.IsNullOrWhiteSpace(value?.ToString());
-            
+
             if (inverse)
                 return isEmpty ? Visibility.Visible : Visibility.Collapsed;
             else
@@ -142,7 +142,7 @@ namespace ADManagementApp.Helpers
             return "N/A";
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is string str && DateTime.TryParse(str, out DateTime result))
             {
@@ -183,7 +183,7 @@ namespace ADManagementApp.Helpers
             {
                 bool inverse = parameter?.ToString()?.ToLower() == "inverse";
                 bool hasItems = count > 0;
-                
+
                 if (inverse)
                     return hasItems ? Visibility.Collapsed : Visibility.Visible;
                 else

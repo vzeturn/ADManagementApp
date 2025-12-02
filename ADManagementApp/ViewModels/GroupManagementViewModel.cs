@@ -187,7 +187,8 @@ namespace ADManagementApp.ViewModels
         /// </summary>
         private async Task DeleteGroupAsync()
         {
-            if (SelectedGroup == null) return;
+            if (SelectedGroup == null)
+                return;
 
             try
             {
@@ -236,7 +237,8 @@ namespace ADManagementApp.ViewModels
         /// </summary>
         private void ViewMembers()
         {
-            if (SelectedGroup == null) return;
+            if (SelectedGroup == null)
+                return;
 
             _logger.LogInformation("Showing members for group: {GroupName}", SelectedGroup.SamAccountName);
             _dialogService.ShowGroupMembers(SelectedGroup);
@@ -247,7 +249,8 @@ namespace ADManagementApp.ViewModels
         /// </summary>
         private async Task AddMemberAsync()
         {
-            if (SelectedGroup == null) return;
+            if (SelectedGroup == null)
+                return;
 
             try
             {

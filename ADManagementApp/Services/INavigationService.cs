@@ -1,4 +1,4 @@
-﻿namespace ADManagementApp.Services
+namespace ADManagementApp.Services
 {
     /// <summary>
     /// Service for managing navigation between views

@@ -1,4 +1,4 @@
-﻿using ADManagementApp.Models;
+using ADManagementApp.Models;
 using ADManagementApp.Services;
 using ADManagementApp.ViewModels;
 using Microsoft.Extensions.Caching.Memory;

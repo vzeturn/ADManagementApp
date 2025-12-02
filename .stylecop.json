@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/data/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "documentPrivateElements": true,
+      "documentPrivateFields": true,
+      "companyName": "AQUA",
+      "copyrightText": "Copyright © 2024"
+    },
+    "namingRules": {
+      "allowCommonHungarianPrefixes": false,
+      "allowPrivateFieldsStartingWithUnderscore": true
+    },
+    "indentation": {
+      "indentationSize": 4,
+      "useTabsForIndentation": false
+    },
+    "layoutRules": {
+      "newlineAtEndOfFile": "require"
+    },
+    "orderingRules": {
+      "elementOrder": [
+        "Kind",
+        "Accessibility",
+        "Readonly",
+        "Static"
+      ]
+    }
+  }
+}

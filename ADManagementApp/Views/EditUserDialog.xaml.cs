@@ -1,10 +1,17 @@
-﻿using System.Windows;
+using System.Windows;
 using ADManagementApp.Models;
 
 namespace ADManagementApp.Views
 {
+    /// <summary>
+    /// Dialog for editing an existing Active Directory user.
+    /// Allows modification of user properties and applies changes back to AD.
+    /// </summary>
     public partial class EditUserDialog : Window
     {
+        /// <summary>
+        /// Gets the edited user object with updated properties.
+        /// </summary>
         public ADUser? EditedUser { get; private set; }
 
         public EditUserDialog(ADUser user)
@@ -26,7 +33,8 @@ namespace ADManagementApp.Views
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EditedUser == null) return;
+            if (EditedUser == null)
+                return;
 
             // Update user object
             EditedUser.DisplayName = DisplayNameTextBox.Text.Trim();

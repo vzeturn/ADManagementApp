@@ -1,14 +1,26 @@
-﻿using System;
+using System;
 using System.Windows;
 using ADManagementApp.Models;
 using ADManagementApp.Services;
 
 namespace ADManagementApp.Views
 {
+    /// <summary>
+    /// Dialog for creating a new Active Directory user.
+    /// Provides UI for collecting user information and validation before creation.
+    /// </summary>
     public partial class CreateUserDialog : Window
     {
         private readonly IValidationService _validationService;
+
+        /// <summary>
+        /// Gets the newly created user object if the dialog was completed successfully.
+        /// </summary>
         public ADUser? NewUser { get; private set; }
+
+        /// <summary>
+        /// Gets the initial password for the new user.
+        /// </summary>
         public string Password { get; private set; } = string.Empty;
 
         // Constructor with ValidationService injection
@@ -112,17 +124,17 @@ namespace ADManagementApp.Views
             // Create the new user object
             var user = new ADUser
             {
-                SamAccountName = UsernameTextBox.Text.Trim(),
-                GivenName = FirstNameTextBox.Text.Trim(),
-                Surname = LastNameTextBox.Text.Trim(),
-                DisplayName = DisplayNameTextBox.Text.Trim(),
-                EmailAddress = EmailTextBox.Text?.Trim() ?? string.Empty,
-                Department = DepartmentTextBox.Text?.Trim() ?? string.Empty,
-                Title = TitleTextBox.Text?.Trim() ?? string.Empty,
-                PhoneNumber = PhoneTextBox.Text?.Trim() ?? string.Empty,
-                Description = DescriptionTextBox.Text?.Trim() ?? string.Empty,
-                Enabled = EnabledCheckBox.IsChecked ?? true,
-                PasswordNeverExpires = PasswordNeverExpiresCheckBox.IsChecked ?? false,
+                SamAccountName = UsernameTextBox?.Text?.Trim() ?? string.Empty,
+                GivenName = FirstNameTextBox?.Text?.Trim() ?? string.Empty,
+                Surname = LastNameTextBox?.Text?.Trim() ?? string.Empty,
+                DisplayName = DisplayNameTextBox?.Text?.Trim() ?? string.Empty,
+                EmailAddress = EmailTextBox?.Text?.Trim() ?? string.Empty,
+                Department = DepartmentTextBox?.Text?.Trim() ?? string.Empty,
+                Title = TitleTextBox?.Text?.Trim() ?? string.Empty,
+                PhoneNumber = PhoneTextBox?.Text?.Trim() ?? string.Empty,
+                Description = DescriptionTextBox?.Text?.Trim() ?? string.Empty,
+                Enabled = EnabledCheckBox?.IsChecked ?? true,
+                PasswordNeverExpires = PasswordNeverExpiresCheckBox?.IsChecked ?? false,
                 UserCannotChangePassword = false
             };
 

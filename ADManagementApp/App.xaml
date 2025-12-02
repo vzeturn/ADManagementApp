@@ -28,6 +28,10 @@
                 <views:GroupManagementView />
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type viewModels:SettingsViewModel}">
+                <views:SettingsView />
+            </DataTemplate>
+
             <!-- Converters -->
             <helpers:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <helpers:BoolToColorConverter x:Key="BoolToColorConverter"/>

@@ -253,7 +253,8 @@ namespace ADManagementApp.ViewModels
         /// </summary>
         private async Task DeleteUserAsync()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
 
             try
             {
@@ -309,7 +310,8 @@ namespace ADManagementApp.ViewModels
         /// </summary>
         private async Task ResetPasswordAsync()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
 
             try
             {
@@ -367,31 +369,36 @@ namespace ADManagementApp.ViewModels
         // Other methods remain the same...
         private async Task EditUserAsync()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
             // Implementation same as before
         }
 
         private async Task EnableUserAsync()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
             // Add audit logging
         }
 
         private async Task DisableUserAsync()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
             // Add audit logging
         }
 
         private void ViewDetails()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
             _dialogService.ShowUserDetails(SelectedUser);
         }
 
         private async Task UnlockAccountAsync()
         {
-            if (SelectedUser == null) return;
+            if (SelectedUser == null)
+                return;
             // Add audit logging
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ADManagementApp.Models
 {
@@ -156,7 +156,8 @@ namespace ADManagementApp.Models
         /// </summary>
         public bool IsExpired(int expirationHours)
         {
-            if (expirationHours == 0) return false;
+            if (expirationHours == 0)
+                return false;
             return DateTime.Now > StoredAt.AddHours(expirationHours);
         }
     }

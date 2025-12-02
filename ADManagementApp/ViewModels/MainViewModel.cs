@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
@@ -36,6 +36,7 @@ namespace ADManagementApp.ViewModels
             DashboardViewModel dashboardViewModel,
             UserManagementViewModel userManagementViewModel,
             GroupManagementViewModel groupManagementViewModel,
+            SettingsViewModel settingsViewModel,
             ILogger<MainViewModel> logger)
         {
             _configuration = configuration;
@@ -49,6 +50,7 @@ namespace ADManagementApp.ViewModels
             DashboardViewModel = dashboardViewModel;
             UserManagementViewModel = userManagementViewModel;
             GroupManagementViewModel = groupManagementViewModel;
+            SettingsViewModel = settingsViewModel;
 
             // Initialize commands
             NavigateToDashboardCommand = new RelayCommand(NavigateToDashboard, () => !IsBusy);
@@ -72,6 +74,7 @@ namespace ADManagementApp.ViewModels
         public DashboardViewModel DashboardViewModel { get; }
         public UserManagementViewModel UserManagementViewModel { get; }
         public GroupManagementViewModel GroupManagementViewModel { get; }
+        public SettingsViewModel SettingsViewModel { get; }
 
         public object? CurrentView => _navigationService.CurrentViewModel;
 
@@ -122,7 +125,8 @@ namespace ADManagementApp.ViewModels
         /// </summary>
         private async Task InitializeAsync()
         {
-            if (_isInitialized) return;
+            if (_isInitialized)
+                return;
 
             try
             {
@@ -305,8 +309,18 @@ namespace ADManagementApp.ViewModels
 
         private void ShowSettings()
         {
-            _logger.LogDebug("Opening Settings");
-            _dialogService.ShowInformation("Settings functionality will be implemented soon", "Settings");
+            _logger.LogDebug("Navigating to Settings view");
+            _navigationService.NavigateTo(SettingsViewModel);
+        }
+
+        /// <summary>
+        /// Navigates to the Settings view/dialog.
+        /// Used when settings need to be configured (e.g., during initialization).
+        /// </summary>
+        private void NavigateToSettings()
+        {
+            _logger.LogDebug("Navigating to Settings (from initialization)");
+            ShowSettings();
         }
 
         #endregion
